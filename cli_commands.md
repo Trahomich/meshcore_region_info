@@ -1,1333 +1,1333 @@
-# CLI Commands
+# Команды CLI
 
-This document provides an overview of CLI commands that can be sent to MeshCore Repeaters, Room Servers and Sensors.
+Этот документ содержит обзор CLI-команд, которые можно отправлять репитерам MeshCore, Room-серверам и датчикам.
 
-## Navigation
+## Навигация
 
-- [Operational](#operational)
-- [Neighbors](#neighbors-repeater-only)
-- [Statistics](#statistics)
-- [Logging](#logging)
-- [Information](#info)
-- [Configuration](#configuration)
-  - [Radio](#radio)
-  - [System](#system)
-  - [Routing](#routing)
+- [Управление](#operational)
+- [Соседи](#neighbors-repeater-only)
+- [Статистика](#statistics)
+- [Логирование](#logging)
+- [Информация](#info)
+- [Конфигурация](#configuration)
+  - [Радио](#radio)
+  - [Система](#system)
+  - [Маршрутизация](#routing)
   - [ACL](#acl)
-  - [Region Management](#region-management-v110)
-    - [Region Examples](#region-examples)
+  - [Управление регионами](#region-management-v110)
+    - [Примеры регионов](#region-examples)
   - [GPS](#gps-when-gps-support-is-compiled-in)
-  - [Sensors](#sensors-when-sensor-support-is-compiled-in)
-  - [Bridge](#bridge-when-bridge-support-is-compiled-in)
+  - [Датчики](#sensors-when-sensor-support-is-compiled-in)
+  - [Мост](#bridge-when-bridge-support-is-compiled-in)
 
 ---
 
-## Operational
+## Управление
 
 
-### Reboot the node
-**Usage:**
+### Перезагрузка узла
+**Использование:**
 - `reboot`
 
-**Description:**
-Restarts the node immediately. Use this command after changing settings that require a reboot to take effect, or to recover from an unexpected state.
+**Описание:**
+Немедленно перезапускает узел. Используйте эту команду после изменения настроек, требующих перезагрузки, или для восстановления из неожиданного состояния.
 
-**Example:**
+**Пример:**
 ```
 reboot
 ```
-Use after updating radio parameters or firmware.
+Используйте после обновления параметров радио или прошивки.
 
 ---
 
 
-### Reset the clock and reboot
-**Usage:**
+### Сброс часов и перезагрузка
+**Использование:**
 - `clkreboot`
 
-**Description:**
-Resets the node's internal clock to zero and then reboots. Useful for troubleshooting time synchronization issues or starting a new session with a clean clock.
+**Описание:**
+Сбрасывает внутренние часы узла в ноль и затем перезагружает. Полезно для устранения проблем с синхронизацией времени или для начала новой сессии с чистыми часами.
 
-**Example:**
+**Пример:**
 ```
 clkreboot
 ```
-Use if the node's time is out of sync and you want to reset it completely.
+Используйте, если время узла рассинхронизировано и вы хотите полностью его сбросить.
 
 ---
 
 
-### Sync the clock with the remote device
-**Usage:**
+### Синхронизация часов с удалённым устройством
+**Использование:**
 - `clock sync`
 
-**Description:**
-Synchronizes the node's clock with a remote device. Use this to ensure all nodes in the network have the same time, which is important for time-based operations and logs.
+**Описание:**
+Синхронизирует часы узла с удалённым устройством. Используйте для обеспечения одинакового времени на всех узлах сети, что важно для операций и логов, зависящих от времени.
 
-**Example:**
+**Пример:**
 ```
 clock sync
 ```
-Use after connecting to a new network or if you notice time drift between nodes.
+Используйте после подключения к новой сети или при обнаружении рассинхронизации между узлами.
 
 ---
 
 
-### Display current time in UTC
-**Usage:**
+### Отображение текущего времени в UTC
+**Использование:**
 - `clock`
 
-**Description:**
-Shows the current UTC time on the node. Useful for verifying time synchronization and debugging time-based features.
+**Описание:**
+Показывает текущее время UTC на узле. Полезно для проверки синхронизации времени и отладки функций, зависящих от времени.
 
-**Example:**
+**Пример:**
 ```
 clock
 ```
-Use to check the node's current time.
+Используйте для проверки текущего времени узла.
 
 ---
 
 
-### Set the time to a specific timestamp
-**Usage:**
+### Установка времени на определённую метку
+**Использование:**
 - `time <epoch_seconds>`
 
-**Parameters:**
-- `epoch_seconds`: Unix epoch time (seconds since 1970-01-01 00:00:00 UTC)
+**Параметры:**
+- `epoch_seconds`: Unix epoch время (секунды с 1970-01-01 00:00:00 UTC)
 
-**Description:**
-Manually sets the node's clock to a specific Unix timestamp. Use this if you need to correct the time without a remote sync or GPS.
+**Описание:**
+Вручную устанавливает часы узла на определённую Unix-метку времени. Используйте, если нужно исправить время без удалённой синхронизации или GPS.
 
-**Example:**
+**Пример:**
 ```
 time 1700000000
 ```
-Set the time to a known value if the node is isolated or after a battery replacement.
+Установите известное значение времени, если узел изолирован или после замены батареи.
 
 ---
 
 
-### Send a flood advert
-**Usage:**
+### Отправка широковещательного объявления
+**Использование:**
 - `advert`
 
-**Description:**
-Broadcasts a flood advert to the network, announcing the node's presence and status. Use to manually trigger network discovery or update neighbors after a configuration change.
+**Описание:**
+Рассылает широковещательное объявление в сеть, анонсируя присутствие и статус узла. Используйте для ручного запуска обнаружения сети или обновления соседей после изменения конфигурации.
 
-**Example:**
+**Пример:**
 ```
 advert
 ```
-Use after changing node name, location, or radio settings to update the network.
+Используйте после изменения имени узла, местоположения или настроек радио для обновления сети.
 
 ---
 
 
-### Start an Over-The-Air (OTA) firmware update
-**Usage:**
+### Запуск обновления прошивки по воздуху (OTA)
+**Использование:**
 - `start ota`
 
-**Description:**
-Initiates a firmware update process over the air. Use this command to upgrade the node's firmware remotely. Ensure the new firmware is available and compatible.
+**Описание:**
+Инициирует процесс обновления прошивки по воздуху. Используйте эту команду для удалённого обновления прошивки узла. Убедитесь, что новая прошивка доступна и совместима.
 
-**Example:**
+**Пример:**
 ```
 start ota
 ```
-Use when a new firmware version is released and you want to update without physical access.
+Используйте, когда выпущена новая версия прошивки и вы хотите обновиться без физического доступа.
 
 ---
 
 
-### Erase/Factory Reset
-**Usage:**
+### Стирание/Сброс к заводским настройкам
+**Использование:**
 - `erase`
 
-**Description:**
-Restores the node to factory settings, erasing all configuration and data. **This is destructive and cannot be undone.** Use only if you want to start over or repurpose the device.
+**Описание:**
+Восстанавливает заводские настройки узла, удаляя всю конфигурацию и данные. **Это деструктивная операция, которую нельзя отменить.** Используйте только если хотите начать заново или переназначить устройство.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Warning:** _**This is destructive!**_
+**Предупреждение:** _**Это деструктивная операция!**_
 
-**Example:**
+**Пример:**
 ```
 erase
 ```
-Use before selling or transferring a device, or to recover from persistent misconfiguration.
+Используйте перед продажей или передачей устройства, или для восстановления после стойких ошибок конфигурации.
 
 ---
 
-## Neighbors (Repeater Only)
+## Соседи (только репитер)
 
 
-### List nearby neighbors
-**Usage:**
+### Список ближайших соседей
+**Использование:**
 - `neighbors`
 
-**Description:**
-Displays a list of the 8 most recently heard neighbor nodes, showing their public key prefix, last seen timestamp, and signal quality (SNR). Use to check network connectivity and discover nearby repeaters.
+**Описание:**
+Показывает список 8 последних услышанных соседних узлов с префиксом их открытого ключа, временем последнего обнаружения и качеством сигнала (SNR). Используйте для проверки сетевого соединения и обнаружения ближайших репитеров.
 
-**Example:**
+**Пример:**
 ```
 neighbors
 ```
-Use to verify which nodes are within range and active.
+Используйте для проверки того, какие узлы находятся в зоне досягаемости и активны.
 
 ---
 
 
-### Remove a neighbor
-**Usage:**
+### Удаление соседа
+**Использование:**
 - `neighbor.remove <pubkey_prefix>`
 
-**Parameters:**
-- `pubkey_prefix`: The public key prefix of the node to remove
+**Параметры:**
+- `pubkey_prefix`: Префикс открытого ключа узла для удаления
 
-**Description:**
-Removes a specific neighbor from the neighbor list. Use if a node is no longer present or you want to clear stale entries.
+**Описание:**
+Удаляет определённого соседа из списка соседей. Используйте, если узел больше не присутствует или вы хотите очистить устаревшие записи.
 
-**Example:**
+**Пример:**
 ```
 neighbor.remove 1a2b3c4d
 ```
-Use if a neighbor is no longer valid or has been replaced.
+Используйте, если сосед больше не действителен или был заменён.
 
 ---
 
-## Statistics
+## Статистика
 
 
-### Clear Stats
-**Usage:** `clear stats`
+### Очистка статистики
+**Использование:** `clear stats`
 
-**Description:**
-Resets all system, radio, and packet statistics to zero. Use before starting a new test or after troubleshooting to clear old data.
+**Описание:**
+Сбрасывает всю системную, радио- и пакетную статистику в ноль. Используйте перед началом нового теста или после устранения неполадок для очистки старых данных.
 
-**Example:**
+**Пример:**
 ```
 clear stats
 ```
-Use before measuring performance or after a reboot.
+Используйте перед измерением производительности или после перезагрузки.
 
 ---
 
 
-### System Stats - Battery, Uptime, Queue Length and Debug Flags
-**Usage:**
+### Системная статистика — Батарея, Uptime, длина очереди и флаги отладки
+**Использование:**
 - `stats-core`
 
-**Description:**
-Displays core system statistics, including battery voltage, uptime, message queue length, and debug flags. Use to monitor node health and diagnose issues.
+**Описание:**
+Показывает основную системную статистику, включая напряжение батареи, время работы, длину очереди сообщений и флаги отладки. Используйте для мониторинга состояния узла и диагностики проблем.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Example:**
+**Пример:**
 ```
 stats-core
 ```
-Use to check battery status or debug system behavior.
+Используйте для проверки состояния батареи или отладки поведения системы.
 
 ---
 
 
-### Radio Stats - Noise floor, Last RSSI/SNR, Airtime, Receive errors
-**Usage:** `stats-radio`
+### Радиостатистика — Уровень шума, последний RSSI/SNR, эфирное время, ошибки приёма
+**Использование:** `stats-radio`
 
-**Description:**
-Shows radio performance metrics, such as noise floor, last received signal strength (RSSI/SNR), airtime usage, and receive errors. Use to optimize antenna placement or troubleshoot radio issues.
+**Описание:**
+Показывает метрики производительности радио, такие как уровень шума, сила последнего принятого сигнала (RSSI/SNR), использование эфирного времени и ошибки приёма. Используйте для оптимизации размещения антенн или устранения проблем с радио.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Example:**
+**Пример:**
 ```
 stats-radio
 ```
-Use to analyze radio environment and performance.
+Используйте для анализа радиосреды и производительности.
 
 ---
 
 
-### Packet stats - Packet counters: Received, Sent
-**Usage:** `stats-packets`
+### Пакетная статистика — Счётчики пакетов: получено, отправлено
+**Использование:** `stats-packets`
 
-**Description:**
-Displays counters for packets received and sent. Use to monitor network activity and detect communication problems.
+**Описание:**
+Показывает счётчики полученных и отправленных пакетов. Используйте для мониторинга сетевой активности и обнаружения проблем со связью.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Example:**
+**Пример:**
 ```
 stats-packets
 ```
-Use to verify if the node is actively communicating.
+Используйте для проверки того, активно ли узел обменивается данными.
 
 ---
 
-## Logging
+## Логирование
 
 
-### Begin capture of rx log to node storage
-**Usage:** `log start`
+### Начать запись лога приёма в хранилище узла
+**Использование:** `log start`
 
-**Description:**
-Starts recording received packet logs to the node's storage. Use to capture network activity for later analysis.
+**Описание:**
+Начинает запись логов принятых пакетов в хранилище узла. Используйте для захвата сетевой активности для последующего анализа.
 
-**Example:**
+**Пример:**
 ```
 log start
 ```
-Use before a test or when debugging intermittent issues.
+Используйте перед тестом или при отладке间歇ных проблем.
 
 ---
 
 
-### End capture of rx log to node storage
-**Usage:** `log stop`
+### Остановить запись лога приёма в хранилище узла
+**Использование:** `log stop`
 
-**Description:**
-Stops recording the received packet log. Use after capturing enough data for analysis.
+**Описание:**
+Останавливает запись лога принятых пакетов. Используйте после захвата достаточного объёма данных для анализа.
 
-**Example:**
+**Пример:**
 ```
 log stop
 ```
-Use to end a logging session.
+Используйте для завершения сессии логирования.
 
 ---
 
 
-### Erase captured log
-**Usage:** `log erase`
+### Стирание захваченного лога
+**Использование:** `log erase`
 
-**Description:**
-Deletes all captured logs from the node's storage. Use to free up space or clear old logs before a new test.
+**Описание:**
+Удаляет все захваченные логи из хранилища узла. Используйте для освобождения места или очистки старых логов перед новым тестом.
 
-**Example:**
+**Пример:**
 ```
 log erase
 ```
-Use before starting a new experiment.
+Используйте перед началом нового эксперимента.
 
 ---
 
 
-### Print the captured log to the serial terminal
-**Usage:** `log`
+### Вывод захваченного лога в serial-терминал
+**Использование:** `log`
 
-**Description:**
-Outputs the captured log to the serial terminal. Use to review recorded network activity.
+**Описание:**
+Выводит захваченный лог в serial-терминал. Используйте для просмотра записанной сетевой активности.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Example:**
+**Пример:**
 ```
 log
 ```
-Use to analyze captured logs after a test.
+Используйте для анализа захваченных логов после теста.
 
 ---
 
-## Info
+## Информация
 
 
-### Get the Version
-**Usage:** `ver`
+### Получить версию
+**Использование:** `ver`
 
-**Description:**
-Displays the firmware version running on the node. Use to verify compatibility or before reporting issues.
+**Описание:**
+Показывает версию прошивки, запущенную на узле. Используйте для проверки совместимости или перед сообщением о проблемах.
 
-**Example:**
+**Пример:**
 ```
 ver
 ```
-Use to check if the node is up to date.
+Используйте для проверки актуальности версии узла.
 
 ---
 
 
-### Show the hardware name
-**Usage:** `board`
+### Показать имя оборудования
+**Использование:** `board`
 
-**Description:**
-Shows the hardware model or board name. Use to confirm the device type, especially when managing multiple nodes.
+**Описание:**
+Показывает модель оборудования или имя платы. Используйте для подтверждения типа устройства, особенно при управлении несколькими узлами.
 
-**Example:**
+**Пример:**
 ```
 board
 ```
-Use to identify the node's hardware.
+Используйте для идентификации оборудования узла.
 
 ---
 
-## Configuration
+## Конфигурация
 
-### Radio
+### Радио
 
 
-#### View or change this node's radio parameters
-**Usage:**
+#### Просмотр или изменение параметров радио этого узла
+**Использование:**
 - `get radio`
 - `set radio <freq>,<bw>,<sf>,<cr>`
 
-**Parameters:**
-- `freq`: Frequency in MHz (e.g., 869.525)
-- `bw`: Bandwidth in kHz (e.g., 250)
-- `sf`: Spreading factor (5-12, higher = longer range, lower = faster)
-- `cr`: Coding rate (5-8, higher = more robust, lower = faster)
+**Параметры:**
+- `freq`: Частота в МГц (например, 869.525)
+- `bw`: Ширина полосы в кГц (например, 250)
+- `sf`: Коэффициент расширения (5-12, выше = дальность больше, ниже = быстрее)
+- `cr`: Скорость кодирования (5-8, выше = надёжнее, ниже = быстрее)
 
-**Description:**
-Displays or sets the LoRa radio parameters. Use to optimize range, speed, and reliability for your deployment. Changing these values can help adapt to local regulations or environmental conditions.
+**Описание:**
+Показывает или устанавливает параметры LoRa-радио. Используйте для оптимизации дальности, скорости и надёжности для вашего развёртывания. Изменение этих значений поможет адаптироваться к местным нормам или условиям среды.
 
-**Example:**
+**Пример:**
 ```
 set radio 868.1,125,7,5
 ```
-Use a lower spreading factor (e.g., 7) for faster data in short-range, or a higher one (e.g., 11) for long-range, low-speed links.
+Используйте меньший коэффициент расширения (например, 7) для более быстрой передачи на короткие расстояния или больший (например, 11) для дальних связей с низкой скоростью.
 
-**Set by build flag:** `LORA_FREQ`, `LORA_BW`, `LORA_SF`, `LORA_CR`
+**Устанавливается через флаг сборки:** `LORA_FREQ`, `LORA_BW`, `LORA_SF`, `LORA_CR`
 
-**Default:** `869.525,250,11,5`
+**По умолчанию:** `869.525,250,11,5`
 
-**Note:** Requires reboot to apply
+**Примечание:** Требуется перезагрузка для применения
 
 ---
 
 
-#### View or change this node's transmit power
-**Usage:**
+#### Просмотр или изменение мощности передачи этого узла
+**Использование:**
 - `get tx`
 - `set tx <dbm>`
 
-**Parameters:**
-- `dbm`: Power level in dBm (1-22)
+**Параметры:**
+- `dbm`: Уровень мощности в дБм (1-22)
 
-**Description:**
-Shows or sets the LoRa transmit power. Use higher values for longer range, but be aware of legal limits and hardware capabilities. Lower values save battery and reduce interference.
+**Описание:**
+Показывает или устанавливает мощность передачи LoRa. Используйте большие значения для большей дальности, но учитывайте юридические ограничения и возможности оборудования. Меньшие значения экономят батарею и снижают помехи.
 
-**Example:**
+**Пример:**
 ```
 set tx 14
 ```
-Use 14 dBm for typical EU/US operation. Use 20+ dBm only if your hardware supports it and local laws allow.
+Используйте 14 дБм для типичной работы в ЕС/США. Используйте 20+ дБм только если ваше оборудование поддерживает это и местные законы разрешают.
 
-**Set by build flag:** `LORA_TX_POWER`
+**Устанавливается через флаг сборки:** `LORA_TX_POWER`
 
-**Default:** Varies by board
+**По умолчанию:** Зависит от платы
 
-**Notes:** This setting only controls the LoRa chip. Some nodes have extra amplifiers. Check your board's manual. **Setting too high may be illegal.**
+**Примечания:** Эта настройка управляет только чипом LoRa. Некоторые узлы имеют дополнительные усилители. Проверьте руководство вашей платы. **Слишком высокое значение может быть незаконным.**
 
 ---
 
 
-#### Change the radio parameters for a set duration
-**Usage:**
+#### Изменение параметров радио на определённое время
+**Использование:**
 - `tempradio <freq>,<bw>,<sf>,<cr>,<timeout_mins>`
 
-**Parameters:**
-- `freq`: Frequency in MHz (300-2500)
-- `bw`: Bandwidth in kHz (7.8-500)
-- `sf`: Spreading factor (5-12)
-- `cr`: Coding rate (5-8)
-- `timeout_mins`: Duration in minutes (must be > 0)
+**Параметры:**
+- `freq`: Частота в МГц (300-2500)
+- `bw`: Ширина полосы в кГц (7.8-500)
+- `sf`: Коэффициент расширения (5-12)
+- `cr`: Скорость кодирования (5-8)
+- `timeout_mins`: Длительность в минутах (должна быть > 0)
 
-**Description:**
-Temporarily changes the radio settings for a specified time. Use for testing or temporary compliance with local rules. Settings revert after timeout or reboot.
+**Описание:**
+Временно изменяет настройки радио на указанное время. Используйте для тестирования или временного соответствия местным правилам. Настройки возвращаются после таймаута или перезагрузки.
 
-**Example:**
+**Пример:**
 ```
 tempradio 868.3,125,7,5,10
 ```
-Use to test a new frequency for 10 minutes without permanent change.
+Используйте для тестирования новой частоты в течение 10 минут без постоянного изменения.
 
-**Note:** Not saved to preferences; clears on reboot.
+**Примечание:** Не сохраняется в настройки; сбрасывается при перезагрузке.
 
 ---
 
 
-#### View or change this node's frequency
-**Usage:**
+#### Просмотр или изменение частоты этого узла
+**Использование:**
 - `get freq`
 - `set freq <frequency>`
 
-**Parameters:**
-- `frequency`: Frequency in MHz (e.g., 868.1)
+**Параметры:**
+- `frequency`: Частота в МГц (например, 868.1)
 
-**Description:**
-Shows or sets the radio frequency. Use to comply with local regulations or avoid interference.
+**Описание:**
+Показывает или устанавливает частоту радио. Используйте для соблюдения местных норм или избежания помех.
 
-**Example:**
+**Пример:**
 ```
 set freq 868.1
 ```
-Use a frequency allowed in your country. Requires reboot to apply.
+Используйте частоту, разрешённую в вашей стране. Требуется перезагрузка для применения.
 
-### System
+### Система
 
 
-#### View or change this node's name
-**Usage:**
+#### Просмотр или изменение имени этого узла
+**Использование:**
 - `get name`
 - `set name <name>`
 
-**Parameters:**
-- `name`: Node name (max 24-32 bytes, depending on location)
+**Параметры:**
+- `name`: Имя узла (максимум 24-32 байта, в зависимости от местоположения)
 
-**Description:**
-Shows or sets the node's advertised name. Use to identify nodes in the network. Useful for deployments with many devices.
+**Описание:**
+Показывает или устанавливает объявляемое имя узла. Используйте для идентификации узлов в сети. Полезно при развёртывании с множеством устройств.
 
-**Example:**
+**Пример:**
 ```
 set name repeater-west
 ```
-Use a descriptive name for easier management.
+Используйте описательное имя для удобства управления.
 
-**Set by build flag:** `ADVERT_NAME`
+**Устанавливается через флаг сборки:** `ADVERT_NAME`
 
-**Default:** Varies by board
+**По умолчанию:** Зависит от платы
 
-**Note:** Max length varies. Emoji/unicode may use more bytes.
+**Примечание:** Максимальная длина варьируется. Эмодзи/юникод может использовать больше байт.
 
 ---
 
 
-#### View or change this node's latitude
-**Usage:**
+#### Просмотр или изменение широты этого узла
+**Использование:**
 - `get lat`
 - `set lat <degrees>`
 
-**Parameters:**
-- `degrees`: Latitude in decimal degrees (e.g., 51.5074)
+**Параметры:**
+- `degrees`: Широта в десятичных градусах (например, 51.5074)
 
-**Description:**
-Shows or sets the node's latitude. Use for location-aware features or to help identify node placement.
+**Описание:**
+Показывает или устанавливает широту узла. Используйте для функций, зависящих от местоположения, или для идентификации размещения узла.
 
-**Example:**
+**Пример:**
 ```
 set lat 51.5074
 ```
-Set to your node's actual location for accurate network mapping.
+Установите фактическое местоположение вашего узла для точного сетевого картографирования.
 
-**Set by build flag:** `ADVERT_LAT`
+**Устанавливается через флаг сборки:** `ADVERT_LAT`
 
-**Default:** `0`
+**По умолчанию:** `0`
 
 ---
 
 
-#### View or change this node's longitude
-**Usage:**
+#### Просмотр или изменение долготы этого узла
+**Использование:**
 - `get lon`
 - `set lon <degrees>`
 
-**Parameters:**
-- `degrees`: Longitude in decimal degrees (e.g., -0.1278)
+**Параметры:**
+- `degrees`: Долгота в десятичных градусах (например, -0.1278)
 
-**Description:**
-Shows or sets the node's longitude. Use for mapping and location-based routing.
+**Описание:**
+Показывает или устанавливает долготу узла. Используйте для картографирования и маршрутизации на основе местоположения.
 
-**Example:**
+**Пример:**
 ```
 set lon -0.1278
 ```
-Set to your node's actual longitude for accurate network mapping.
+Установите фактическую долготу вашего узла для точного сетевого картографирования.
 
-**Set by build flag:** `ADVERT_LON`
+**Устанавливается через флаг сборки:** `ADVERT_LON`
 
-**Default:** `0`
+**По умолчанию:** `0`
 
 ---
 
 
-#### View or change this node's identity (Private Key)
-**Usage:**
+#### Просмотр или изменение идентичности этого узла (закрытый ключ)
+**Использование:**
 - `get prv.key`
 - `set prv.key <private_key>`
 
-**Parameters:**
-- `private_key`: 64-character hex string
+**Параметры:**
+- `private_key`: 64-символьная hex-строка
 
-**Description:**
-Shows or sets the node's private key. Use only for advanced configuration or key recovery. Changing this will change the node's identity.
+**Описание:**
+Показывает или устанавливает закрытый ключ узла. Используйте только для расширенной конфигурации или восстановления ключа. Изменение этого параметра изменит идентичность узла.
 
-**Example:**
+**Пример:**
 ```
-set prv.key 0123456789abcdef... (64 hex chars)
+set prv.key 0123456789abcdef... (64 hex-символа)
 ```
-Use only if you need to restore a backup or assign a specific identity.
+Используйте только если нужно восстановить резервную копию или назначить определённую идентичность.
 
-**Serial Only:**
-- `get prv.key`: Yes
-- `set prv.key`: No
+**Только через Serial:**
+- `get prv.key`: Да
+- `set prv.key`: Нет
 
-**Note:** Requires reboot to take effect.
+**Примечание:** Требуется перезагрузка для применения.
 
 ---
 
 
-#### View or change this node's admin password
-**Usage:**
+#### Просмотр или изменение пароля администратора этого узла
+**Использование:**
 - `get password`
 - `set password <password>`
 
-**Parameters:**
-- `password`: Admin password
+**Параметры:**
+- `password`: Пароль администратора
 
-**Description:**
-Shows or sets the admin password. Use to secure access to sensitive commands. Only nodes with this password can perform admin actions.
+**Описание:**
+Показывает или устанавливает пароль администратора. Используйте для защиты доступа к конфиденциальным командам. Только узлы с этим паролем могут выполнять действия администратора.
 
-**Example:**
+**Пример:**
 ```
 set password mysecret
 ```
-Change the password after initial setup for security.
+Измените пароль после начальной настройки в целях безопасности.
 
-**Set by build flag:** `ADMIN_PASSWORD`
+**Устанавливается через флаг сборки:** `ADMIN_PASSWORD`
 
-**Default:** `password`
+**По умолчанию:** `password`
 
-**Note:** Echoed back for confirmation. Any node using this password is added to the admin ACL.
+**Примечание:** Отображается для подтверждения. Любой узел, использующий этот пароль, добавляется в ACL администратора.
 
 ---
 
 
-#### View or change this node's guest password
-**Usage:**
+#### Просмотр или изменение гостевого пароля этого узла
+**Использование:**
 - `get guest.password`
 - `set guest.password <password>`
 
-**Parameters:**
-- `password`: Guest password
+**Параметры:**
+- `password`: Гостевой пароль
 
-**Description:**
-Shows or sets the guest password. Use to allow limited access for non-admin users.
+**Описание:**
+Показывает или устанавливает гостевой пароль. Используйте для предоставления ограниченного доступа не-администраторам.
 
-**Example:**
+**Пример:**
 ```
 set guest.password visitor
 ```
-Set a guest password to allow read-only access for visitors.
+Установите гостевой пароль для предоставления доступа только для чтения посетителям.
 
-**Set by build flag:** `ROOM_PASSWORD` (Room Server only)
+**Устанавливается через флаг сборки:** `ROOM_PASSWORD` (только Room Server)
 
-**Default:** `<blank>`
+**По умолчанию:** `<пусто>`
 
 ---
 
 
-#### View or change this node's owner info
-**Usage:**
+#### Просмотр или изменение информации о владельце этого узла
+**Использование:**
 - `get owner.info`
 - `set owner.info <text>`
 
-**Parameters:**
-- `text`: Owner information (use `|` for newlines)
+**Параметры:**
+- `text`: Информация о владельце (используйте `|` для новых строк)
 
-**Description:**
-Shows or sets the owner information text. Use to store contact info or deployment notes.
+**Описание:**
+Показывает или устанавливает текст информации о владельце. Используйте для хранения контактной информации или заметок о развёртывании.
 
-**Example:**
+**Пример:**
 ```
-set owner.info John Doe|john@example.com
+set owner.info Иван Иванов|ivan@example.com
 ```
-Use to help identify the owner if the device is lost.
+Используйте для идентификации владельца в случае утери устройства.
 
-**Default:** `<blank>`
+**По умолчанию:** `<пусто>`
 
-**Note:** `|` becomes newline. Requires firmware 1.12+.
+**Примечание:** `|` становится новой строкой. Требуется прошивка 1.12+.
 
 ---
 
 
-#### Fine-tune the battery reading
-**Usage:**
+#### Тонкая настройка показаний батареи
+**Использование:**
 - `get adc.multiplier`
 - `set adc.multiplier <value>`
 
-**Parameters:**
-- `value`: ADC multiplier (0.0-10.0)
+**Параметры:**
+- `value`: Множитель ADC (0.0-10.0)
 
-**Description:**
-Adjusts the multiplier for battery voltage readings. Use to calibrate battery measurements if readings are inaccurate.
+**Описание:**
+Регулирует множитель для показаний напряжения батареи. Используйте для калибровки измерений батареи, если показания неточны.
 
-**Example:**
+**Пример:**
 ```
 set adc.multiplier 1.05
 ```
-Increase if voltage reads too low, decrease if too high.
+Увеличьте, если напряжение显示ывается слишком низким, уменьшите, если слишком высоким.
 
-**Default:** `0.0` (board-defined)
+**По умолчанию:** `0.0` (определяется платой)
 
-**Note:** Not all boards support this.
+**Примечание:** Не все платы поддерживают эту функцию.
 
 ---
 
 
-#### View or change this node's power saving flag (Repeater Only)
-**Usage:**
+#### Просмотр или изменение флага энергосбережения этого узла (только репитер)
+**Использование:**
 - `powersaving <state>`
 - `powersaving`
 
-**Parameters:**
-- `state`: `on` or `off`
+**Параметры:**
+- `state`: `on` или `off`
 
-**Description:**
-Enables or disables power saving mode. When enabled, the device sleeps between transmissions to save battery. Use for battery-powered repeaters.
+**Описание:**
+Включает или отключает режим энергосбережения. При включении устройство переходит в спящий режим между передачами для экономии батареи. Используйте для репитеров на батарейном питании.
 
-**Example:**
+**Пример:**
 ```
 powersaving on
 ```
-Enable for solar or battery nodes; disable for mains-powered always-on repeaters.
+Включите для солнечных или батарейных узлов; отключите для репитеров с постоянным питанием.
 
-**Default:** `on`
+**По умолчанию:** `on`
 
-**Note:** Saves power at the cost of slightly higher latency.
+**Примечание:** Экономит энергию за счёт немного большей задержки.
 
 ---
 
-### Routing
+### Маршрутизация
 
 
-#### View or change this node's repeat flag
-**Usage:**
+#### Просмотр или изменение флага ретрансляции этого узла
+**Использование:**
 - `get repeat`
 - `set repeat <state>`
 
-**Parameters:**
-- `state`: `on` or `off`
+**Параметры:**
+- `state`: `on` или `off`
 
-**Description:**
-Enables or disables repeating (relaying) of packets. Use to control whether this node acts as a repeater.
+**Описание:**
+Включает или отключает ретрансляцию (передачу) пакетов. Используйте для управления тем, действует ли этот узел как репитер.
 
-**Example:**
+**Пример:**
 ```
 set repeat off
 ```
-Disable on end-nodes or sensors to reduce network traffic.
+Отключите на конечных узлах или датчиках для снижения сетевого трафика.
 
-**Default:** `on`
+**По умолчанию:** `on`
 
 ---
 
 
-#### View or change the retransmit delay factor for flood traffic
-**Usage:**
+#### Просмотр или изменение коэффициента задержки ретрансляции для flood-трафика
+**Использование:**
 - `get txdelay`
 - `set txdelay <value>`
 
-**Parameters:**
-- `value`: Transmit delay factor (0-2, e.g., 0.5, 1, 2)
+**Параметры:**
+- `value`: Коэффициент задержки передачи (0-2, например, 0.5, 1, 2)
 
-**Description:**
-Sets the random delay before retransmitting flood packets. Lower values mean faster flooding but higher risk of collisions; higher values slow down flooding but reduce collisions.
+**Описание:**
+Устанавливает случайную задержку перед ретрансляцией flood-пакетов. Меньшие значения означают более быстрый флуд, но повышенный риск коллизий; большие значения замедляют флуд, но снижают коллизии.
 
-**Example:**
+**Пример:**
 ```
 set txdelay 0.5
 ```
-Use 0.5 for small, low-traffic networks (fast propagation). Use 1 for medium networks. Use 2 for large, dense networks to avoid packet collisions.
+Используйте 0.5 для небольших сетей с низким трафиком (быстрое распространение). Используйте 1 для средних сетей. Используйте 2 для больших, плотных сетей.
 
-**Default:** `0.5`
+**По умолчанию:** `0.5`
 
 ---
 
 
-#### View or change the retransmit delay factor for direct traffic
-**Usage:**
+#### Просмотр или изменение коэффициента задержки ретрансляции для прямого трафика
+**Использование:**
 - `get direct.txdelay`
 - `set direct.txdelay <value>`
 
-**Parameters:**
-- `value`: Direct transmit delay factor (0-2)
+**Параметры:**
+- `value`: Коэффициент задержки прямой передачи (0-2)
 
-**Description:**
-Sets the delay for direct (unicast) retransmissions. Lower values are faster but may cause more collisions in busy networks.
+**Описание:**
+Устанавливает задержку для прямых (unicast) ретрансляций. Меньшие значения быстрее, но могут вызывать больше коллизий в загруженных сетях.
 
-**Example:**
+**Пример:**
 ```
 set direct.txdelay 0.2
 ```
-Use 0.2 for most cases. Increase for very busy networks.
+Используйте 0.2 для большинства случаев. Увеличьте для очень загруженных сетей.
 
-**Default:** `0.2`
+**По умолчанию:** `0.2`
 
 ---
 
 
-#### [Experimental] View or change the processing delay for received traffic
-**Usage:**
+#### [Экспериментально] Просмотр или изменение задержки обработки принятого трафика
+**Использование:**
 - `get rxdelay`
 - `set rxdelay <value>`
 
-**Parameters:**
-- `value`: Receive delay base (0-20)
+**Параметры:**
+- `value`: Базовая задержка приёма (0-20)
 
-**Description:**
-Adds a base delay to processing received packets. Use for testing or to simulate latency.
+**Описание:**
+Добавляет базовую задержку к обработке принятых пакетов. Используйте для тестирования или симуляции задержки.
 
-**Example:**
+**Пример:**
 ```
 set rxdelay 5
 ```
-Use only for experiments or debugging.
+Используйте только для экспериментов или отладки.
 
 
-**Default:** `0.0`
+**По умолчанию:** `0.0`
 
 ---
 
-### In-Depth: txdelay and rxdelay Explained
+### Подробно: txdelay и rxdelay
 
-#### How txdelay Works
-The `txdelay` parameter introduces a random delay before retransmitting flood packets. This delay is calculated based on the estimated airtime of the packet and the `txdelay` factor you set. The actual delay is randomized to help reduce the chance of packet collisions, especially in busy networks. Internally, the code multiplies the packet's airtime by a factor and applies a random multiplier, so larger packets and higher `txdelay` values result in longer delays.
+#### Как работает txdelay
+Параметр `txdelay` вводит случайную задержку перед ретрансляцией flood-пакетов. Эта задержка рассчитывается на основе оценочного эфирного времени пакета и установленного вами коэффициента `txdelay`. Фактическая задержка рандомизируется для снижения вероятности коллизий пакетов, особенно в загруженных сетях. Внутренне код умножает эфирное время пакета на коэффициент и применяет случайный множитель, поэтому большие пакеты и более высокие значения `txdelay` приводят к большим задержкам.
 
-**When to use different txdelay values:**
-- **Low values (e.g., 0.5):** Use for small, low-traffic networks where collisions are rare and fast propagation is desired.
-- **Medium values (e.g., 1):** Use for medium-sized networks with moderate traffic, balancing speed and collision avoidance.
-- **High values (e.g., 2):** Use for large, dense, or high-traffic networks to minimize collisions, at the cost of slower message propagation.
+**Когда использовать разные значения txdelay:**
+- **Низкие значения (например, 0.5):** Используйте для небольших сетей с низким трафиком, где коллизии редки и желательно быстрое распространение.
+- **Средние значения (например, 1):** Используйте для сетей среднего размера с умеренным трафиком.
+- **Высокие значения (например, 2):** Используйте для больших, плотных или высоконагруженных сетей для минимизации коллизий за счёт скорости.
 
-**Special note:** In KISS modem mode, `txdelay` is used as a timer before sending (in units of 10ms). Setting it too low may cause more collisions; too high increases latency.
+**Особое примечание:** В режиме KISS-модема `txdelay` используется как таймер перед отправкой (в единицах 10мс).
 
-#### How rxdelay Works
+#### Как работает rxdelay
 
-The `rxdelay` parameter introduces a base delay before processing and forwarding received packets. This delay is critical for duplicate suppression in mesh networks:
+Параметр `rxdelay` вводит базовую задержку перед обработкой и пересылкой принятых пакетов. Эта задержка критична для подавления дубликатов в mesh-сетях:
 
-- **How it works in code:** When a packet is received, the node waits for the rxdelay period (plus any score-based delay) before deciding to forward it. During this window, if the node receives the same packet from another neighbor, it recognizes the duplicate and suppresses its own retransmission. This reduces redundant flooding and network congestion, especially in dense deployments.
+- **Как работает в коде:** Когда пакет принят, узел ожидает период rxdelay (плюс любая задержка на основе оценки), прежде чем решить о его пересылке. В течение этого окна, если узел получает тот же пакет от другого соседа, он распознаёт дубликат и подавляет свою ретрансляцию.
 
-- **Why/when to use:**
-  - **Normal operation:** Use a small but nonzero rxdelay in dense or multi-hop networks to maximize duplicate suppression and minimize unnecessary retransmissions.
-  - **Testing/debugging:** Increase rxdelay to simulate higher latency or to observe duplicate suppression in action.
-  - **Low-traffic/simple networks:** rxdelay can be set to 0 for fastest forwarding, but this may increase redundant traffic.
+- **Зачем/когда использовать:**
+  - **Нормальная работа:** Используйте небольшое, но ненулевое значение rxdelay в плотных или многоскачковых сетях.
+  - **Тестирование/отладка:** Увеличьте rxdelay для симуляции большей задержки.
+  - **Сети с низким трафиком:** rxdelay можно установить в 0 для самой быстрой пересылки.
 
-- **Parameter effects:**
-  - Higher rxdelay increases the window for duplicate detection, improving efficiency but adding latency.
-  - Too high values can slow down message propagation unnecessarily.
+- **Влияние параметра:**
+  - Более высокий rxdelay увеличивает окно для обнаружения дубликатов, повышая эффективность, но добавляя задержку.
+  - Слишком высокие значения могут неоправданно замедлить распространение сообщений.
 
-- **Best practice:**
-  - Tune rxdelay based on network density and traffic patterns. For most mesh deployments, a small rxdelay (e.g., 1-5 ms) balances speed and efficiency.
+- **Лучшая практика:**
+  - Для большинства mesh-развёртываний небольшое значение rxdelay (например, 1-5 мс) балансирует скорость и эффективность.
 
-**Example scenario:**
-In a dense mesh, Node A and Node B both receive a flood packet. With rxdelay set, Node B may receive a duplicate from Node A during the delay window and suppress its own retransmission, reducing network load.
+**Пример сценария:**
+В плотной mesh-сети Узел A и Узел B оба принимают flood-пакет. С установленным rxdelay Узел B может получить дубликат от Узла A во время окна задержки и подавить свою ретрансляцию.
 
-**Summary:**
-rxdelay is a key tool for efficient mesh flooding and duplicate suppression, not just for simulating latency.
+**Резюме:**
+rxdelay — ключевой инструмент для эффективного mesh-флуда и подавления дубликатов.
 
-#### Summary Table
+#### Сводная таблица
 
-| Parameter | Use Low Value | Use High Value | Notes |
+| Параметр | Использовать низкое значение | Использовать высокое значение | Примечания |
 |-----------|--------------|---------------|-------|
-| txdelay   | Small, fast, low-traffic networks | Large, dense, high-traffic networks | Reduces collisions at the cost of speed |
-| rxdelay   | Normal operation (keep at 0) | Testing, debugging, simulating latency | Not for production use |
+| txdelay   | Небольшие, быстрые сети с низким трафиком | Большие, плотные сети с высоким трафиком | Снижает коллизии за счёт скорости |
+| rxdelay   | Нормальная работа (оставить 0) | Тестирование, отладка, симуляция задержки | Не для промышленного использования |
 
 
-These settings are powerful tools for tuning network performance, reliability, and efficiency. Adjust them based on your deployment size, density, and testing needs.
-# Deep Code-Driven CLI Command Reference
-...existing code...
-
----
-
-## Additional Code-Driven Notes and Corrections
-
-- **clear stats**: Also resets all internal counters used for diagnostics, not just user-facing stats. Useful before automated tests.
-
-- **log start/stop/erase**: Logging is only for received packets, not all events. Erasing logs does not affect system operation.
-
-- **set radio**: If invalid parameters are provided, the command is rejected and no changes are made. Requires reboot to take effect.
-
-- **set tx**: Setting a value outside hardware or regulatory limits may be ignored or clamped by the firmware. Always check the board's capabilities.
-
-- **tempradio**: Temporary settings override persistent ones only for the specified duration or until reboot. If the timeout is too short or parameters are invalid, the command is ignored.
-
-- **set name**: Names with forbidden characters ([, ], \, :, ,, ?, *) are rejected by the code. Max length is enforced per board.
-
-- **set prv.key**: Only valid, properly formatted keys are accepted. Invalid keys are rejected with an error.
-
-- **setperm**: Omitting the permissions argument removes the entry from the ACL, not just disables it.
-
-- **region load**: Indentation in the region list is significant and creates parent-child relationships. Max depth is 8 levels.
-
-- **region allowf/denyf**: Wildcard `*` applies to all regions without a specific code.
-
-- **gps**: The output includes status, fix, and satellite count. If GPS is not present or enabled, the command returns an error or 'off'.
-
-- **sensor set**: Only custom or supported sensor keys can be set. Invalid keys are rejected.
-
-- **bridge commands**: All bridge-related settings are only available if the firmware is compiled with bridge support. Invalid values (e.g., out-of-range baud/channel) are rejected.
+Эти настройки — мощные инструменты для настройки производительности, надёжности и эффективности сети.
+# Глубокий справочник CLI-команд на основе кода
+...существующий код...
 
 ---
 
+## Дополнительные замечания и исправления на основе кода
+
+- **clear stats**: Также сбрасывает все внутренние счётчики, используемые для диагностики, а не только пользовательскую статистику. Полезно перед автоматическими тестами.
+
+- **log start/stop/erase**: Логирование предназначено только для принятых пакетов, а не для всех событий. Стирание логов не влияет на работу системы.
+
+- **set radio**: Если указаны недопустимые параметры, команда отклоняется без изменений. Требуется перезагрузка для применения.
+
+- **set tx**: Установка значения за пределами аппаратных или регуляторных ограничений может быть проигнорирована или ограничена прошивкой.
+
+- **tempradio**: Временные настройки переопределяют постоянные только на указанное время или до перезагрузки. Если таймаут слишком короткий или параметры недействительны, команда игнорируется.
+
+- **set name**: Имена с запрещёнными символами ([, ], \\, :, ,, ?, *) отклоняются кодом. Максимальная длина соблюдается для каждой платы.
+
+- **set prv.key**: Принимаются только действительные, правильно отформатированные ключи. Недопустимые ключи отклоняются с ошибкой.
+
+- **setperm**: Пропуск аргумента разрешений удаляет запись из ACL, а не просто отключает её.
+
+- **region load**: Отступы в списке регионов имеют значение и создают родительско-дочерние отношения. Максимальная глубина — 8 уровней.
+
+- **region allowf/denyf**: Шаблон `*` применяется ко всем регионам без конкретного кода.
+
+- **gps**: Вывод включает статус, фикс и количество спутников. Если GPS отсутствует или не включён, команда возвращает ошибку или «off».
+
+- **sensor set**: Можно установить только пользовательские или поддерживаемые ключи датчиков. Недопустимые ключи отклоняются.
+
+- **bridge commands**: Все настройки моста доступны только если прошивка скомпилирована с поддержкой моста. Недопустимые значения (например, выходящие за пределы baud/channel) отклоняются.
+
+---
+
 ---
 
 
-#### View or change the airtime factor (duty cycle limit)
-**Usage:**
+#### Просмотр или изменение коэффициента эфирного времени (ограничение duty cycle)
+**Использование:**
 - `get af`
 - `set af <value>`
 
-**Parameters:**
-- `value`: Airtime factor (0-9)
+**Параметры:**
+- `value`: Коэффициент эфирного времени (0-9)
 
-**Description:**
-Limits the node's radio duty cycle. Lower values reduce airtime (better for compliance and battery), higher values allow more traffic.
+**Описание:**
+Ограничивает duty cycle радио узла. Более низкие значения уменьшают эфирное время (лучше для соответствия нормам и экономии батареи), более высокие разрешают больше трафика.
 
-**Example:**
+**Пример:**
 ```
 set af 1
 ```
-Use 1 for normal operation. Lower for strict duty cycle regions.
+Используйте 1 для нормальной работы. Ниже — для регионов со строгими ограничениями duty cycle.
 
-**Default:** `1.0`
+**По умолчанию:** `1.0`
 
 ---
 
 
-#### View or change the local interference threshold
-**Usage:**
+#### Просмотр или изменение порога локальных помех
+**Использование:**
 - `get int.thresh`
 - `set int.thresh <value>`
 
-**Parameters:**
-- `value`: Interference threshold value
+**Параметры:**
+- `value`: Значение порога помех
 
-**Description:**
-Sets the threshold for detecting local interference. Use to tune sensitivity to noisy environments.
+**Описание:**
+Устанавливает порог обнаружения локальных помех. Используйте для настройки чувствительности в зашумлённых средах.
 
-**Example:**
+**Пример:**
 ```
 set int.thresh 0.5
 ```
-Increase if you see too many false positives for interference.
+Увеличьте, если видите слишком много ложных срабатываний помех.
 
-**Default:** `0.0`
+**По умолчанию:** `0.0`
 
 ---
 
 
-#### View or change the AGC Reset Interval
-**Usage:**
+#### Просмотр или изменение интервала сброса AGC
+**Использование:**
 - `get agc.reset.interval`
 - `set agc.reset.interval <value>`
 
-**Parameters:**
-- `value`: Interval in seconds (rounded down to nearest multiple of 4)
+**Параметры:**
+- `value`: Интервал в секундах (округляется вниз до ближайшего кратного 4)
 
-**Description:**
-Sets how often the Automatic Gain Control (AGC) is reset. Use to improve reception in changing radio environments.
+**Описание:**
+Устанавливает, как часто сбрасывается автоматическая регулировка усиления (AGC). Используйте для улучшения приёма в изменяющихся радиоусловиях.
 
-**Example:**
+**Пример:**
 ```
 set agc.reset.interval 16
 ```
-Increase interval if you see unstable signal levels.
+Увеличьте интервал, если видите нестабильные уровни сигнала.
 
-**Default:** `0.0`
+**По умолчанию:** `0.0`
 
 ---
 
 
-#### Enable or disable Multi-Acks support
-**Usage:**
+#### Включение или отключение поддержки Multi-Acks
+**Использование:**
 - `get multi.acks`
 - `set multi.acks <state>`
 
-**Parameters:**
-- `state`: `0` (disable) or `1` (enable)
+**Параметры:**
+- `state`: `0` (отключить) или `1` (включить)
 
-**Description:**
-Enables or disables support for multiple acknowledgments per packet. Use to improve reliability in dense networks.
+**Описание:**
+Включает или отключает поддержку множественных подтверждений на пакет. Используйте для повышения надёжности в плотных сетях.
 
-**Example:**
+**Пример:**
 ```
 set multi.acks 1
 ```
-Enable for networks with many nodes to increase delivery success.
+Включите для сетей с большим количеством узлов для повышения успешности доставки.
 
-**Default:** `0`
+**По умолчанию:** `0`
 
 ---
 
 
-#### View or change the flood advert interval
-**Usage:**
+#### Просмотр или изменение интервала flood-объявлений
+**Использование:**
 - `get flood.advert.interval`
 - `set flood.advert.interval <hours>`
 
-**Parameters:**
-- `hours`: Interval in hours (3-168)
+**Параметры:**
+- `hours`: Интервал в часах (3-168)
 
-**Description:**
-Sets how often the node sends a flood advert. Use to control network update frequency.
+**Описание:**
+Устанавливает, как часто узел отправляет flood-объявление. Используйте для управления частотой обновлений сети.
 
-**Example:**
+**Пример:**
 ```
 set flood.advert.interval 12
 ```
-Use shorter intervals for dynamic networks, longer for stable ones.
+Используйте более короткие интервалы для динамических сетей, более длинные — для стабильных.
 
-**Default:** `12` (Repeater), `0` (Sensor)
+**По умолчанию:** `12` (Репитер), `0` (Датчик)
 
 ---
 
 
-#### View or change the zero-hop advert interval
-**Usage:**
+#### Просмотр или изменение интервала zero-hop объявлений
+**Использование:**
 - `get advert.interval`
 - `set advert.interval <minutes>`
 
-**Parameters:**
-- `minutes`: Interval in minutes (rounded down to nearest multiple of 2, 60-240)
+**Параметры:**
+- `minutes`: Интервал в минутах (округляется вниз до ближайшего кратного 2, 60-240)
 
-**Description:**
-Sets how often the node sends a zero-hop (local) advert. Use to control how frequently the node announces itself to direct neighbors.
+**Описание:**
+Устанавливает, как часто узел отправляет zero-hop (локальное) объявление. Используйте для управления частотой анонсирования узла прямым соседям.
 
-**Example:**
+**Пример:**
 ```
 set advert.interval 120
 ```
-Increase for less frequent updates, decrease for more visibility.
+Увеличьте для менее частых обновлений, уменьшите для большей видимости.
 
-**Default:** `0`
+**По умолчанию:** `0`
 
 ---
 
 
-#### Limit the number of hops for a flood message
-**Usage:**
+#### Ограничение числа скачков для flood-сообщения
+**Использование:**
 - `get flood.max`
 - `set flood.max <value>`
 
-**Parameters:**
-- `value`: Maximum flood hop count (0-64)
+**Параметры:**
+- `value`: Максимальное количество скачков flood (0-64)
 
-**Description:**
-Limits how far a flood message can propagate. Use to contain traffic within a region or prevent network overload.
+**Описание:**
+Ограничивает, как далеко может распространяться flood-сообщение. Используйте для ограничения трафика в регионе или предотвращения перегрузки сети.
 
-**Example:**
+**Пример:**
 ```
 set flood.max 8
 ```
-Use lower values for small networks, higher for large or multi-hop deployments.
+Используйте меньшие значения для небольших сетей, большие — для крупных или многоскачковых развёртываний.
 
-**Default:** `64`
+**По умолчанию:** `64`
 
 ---
 
 ### ACL
 
 
-#### Add, update or remove permissions for a companion
-**Usage:**
+#### Добавление, обновление или удаление прав компаньона
+**Использование:**
 - `setperm <pubkey> <permissions>`
 
-**Parameters:**
-- `pubkey`: Companion public key
-- `permissions`: 0 (Guest), 1 (Read-only), 2 (Read-write), 3 (Admin)
+**Параметры:**
+- `pubkey`: Публичный ключ компаньона
+- `permissions`: 0 (Гость), 1 (Только чтение), 2 (Чтение-запись), 3 (Админ)
 
-**Description:**
-Sets or updates access permissions for a companion node. Omit `permissions` to remove the entry. Use to manage network access and security.
+**Описание:**
+Устанавливает или обновляет права доступа для узла-компаньона. Пропустите `permissions` для удаления записи. Используйте для управления доступом к сети и безопасностью.
 
-**Example:**
+**Пример:**
 ```
 setperm 1a2b3c4d 2
 setperm 1a2b3c4d
 ```
-First line grants read-write, second removes the entry.
+Первая строка даёт чтение-запись, вторая удаляет запись.
 
 ---
 
 
-#### View the current ACL
-**Usage:**
+#### Просмотр текущего ACL
+**Использование:**
 - `get acl`
 
-**Description:**
-Displays the Access Control List (ACL) for the node. Use to review which public keys have what permissions.
+**Описание:**
+Отображает список управления доступом (ACL) узла. Используйте для проверки, какие публичные ключи и с какими правами имеются.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Example:**
+**Пример:**
 ```
 get acl
 ```
-Use to audit network access.
+Используйте для аудита сетевого доступа.
 
 ---
 
 
-#### View or change this room server's 'read-only' flag
-**Usage:**
+#### Просмотр или изменение флага «только чтение» данного Room-сервера
+**Использование:**
 - `get allow.read.only`
 - `set allow.read.only <state>`
 
-**Parameters:**
-- `state`: `on` (enable) or `off` (disable)
+**Параметры:**
+- `state`: `on` (включить) или `off` (выключить)
 
-**Description:**
-Enables or disables read-only mode for the room server. Use to restrict changes from guests.
+**Описание:**
+Включает или отключает режим «только чтение» для Room-сервера. Используйте для запрета изменений от гостей.
 
-**Example:**
+**Пример:**
 ```
 set allow.read.only on
 ```
-Enable to prevent guests from making changes.
+Включите, чтобы запретить гостям вносить изменения.
 
-**Default:** `off`
+**По умолчанию:** `off`
 
 ---
 
-### Region Management (v1.10.+)
+### Управление регионами (v1.10.+)
 
 
-#### Bulk-load region lists
-**Usage:**
+#### Массовая загрузка списков регионов
+**Использование:**
 - `region load`
 - `region load <name> [flood_flag]`
 
-**Parameters:**
-- `name`: Region name (use `*` for wildcard)
-- `flood_flag`: Optional `F` to enable flooding for the region
+**Параметры:**
+- `name`: Имя региона (используйте `*` для шаблона)
+- `flood_flag`: Необязательный `F` для включения флудинга региона
 
-**Description:**
-Loads a list of regions in bulk, optionally enabling flooding. Use to quickly configure region hierarchies and permissions.
+**Описание:**
+Загружает список регионов массово, с возможным включением флудинга. Используйте для быстрой настройки иерархий регионов и прав.
 
-**Example:**
+**Пример:**
 ```
 region load
 #Europe F
   #UK
   #France
-<blank line to end>
+<пустая строка для завершения>
 region save
 ```
-Use to set up regional routing and flooding rules efficiently.
+Используйте для эффективной настройки региональной маршрутизации и правил флудинга.
 
-**Note:** Indentation creates parent-child relationships (max 8 levels). `region load` with an empty name is interactive and not available remotely.
+**Примечание:** Отступы создают родительско-дочерние отношения (макс. 8 уровней). `region load` с пустым именем — интерактивный и недоступен удалённо.
 
 ---
 
 
-#### Save any changes to regions made since reboot
-**Usage:**
+#### Сохранение изменений регионов после перезагрузки
+**Использование:**
 - `region save`
 
-**Description:**
-Saves all region changes to persistent storage. Use after modifying regions to make changes permanent.
+**Описание:**
+Сохраняет все изменения регионов в постоянную память. Используйте после изменения регионов для сохранения настроек.
 
-**Example:**
+**Пример:**
 ```
 region save
 ```
-Always run after `region load` or other region modifications.
+Всегда выполняйте после `region load` или других изменений регионов.
 
 ---
 
 
-#### Allow a region
-**Usage:**
+#### Разрешение региона
+**Использование:**
 - `region allowf <name>`
 
-**Parameters:**
-- `name`: Region name (or `*` for wildcard)
+**Параметры:**
+- `name`: Имя региона (или `*` для шаблона)
 
-**Description:**
-Allows traffic from the specified region. Use to permit packets from a region or all regions (with `*`).
+**Описание:**
+Разрешает трафик из указанного региона. Используйте для разрешения пакетов из региона или всех регионов (с `*`).
 
-**Example:**
+**Пример:**
 ```
 region allowf #Europe
 region allowf *
 ```
-Use `*` to allow packets without region codes.
+Используйте `*` для разрешения пакетов без региональных кодов.
 
 ---
 
 
-#### Block a region
-**Usage:**
+#### Блокировка региона
+**Использование:**
 - `region denyf <name>`
 
-**Parameters:**
-- `name`: Region name (or `*` for wildcard)
+**Параметры:**
+- `name`: Имя региона (или `*` для шаблона)
 
-**Description:**
-Blocks traffic from the specified region. Use to deny packets from a region or all regions (with `*`).
+**Описание:**
+Блокирует трафик из указанного региона. Используйте для запрета пакетов из региона или всех регионов (с `*`).
 
-**Example:**
+**Пример:**
 ```
 region denyf #Europe
 region denyf *
 ```
-Use `*` to block packets without region codes.
+Используйте `*` для блокировки пакетов без региональных кодов.
 
 ---
 
 
-#### Show information for a region
-**Usage:**
+#### Показать информацию о регионе
+**Использование:**
 - `region get <name>`
 
-**Parameters:**
-- `name`: Region name (or `*` for wildcard)
+**Параметры:**
+- `name`: Имя региона (или `*` для шаблона)
 
-**Description:**
-Displays details about a region, such as permissions and flooding status. Use to audit or debug region settings.
+**Описание:**
+Отображает подробности о регионе, такие как права и статус флудинга. Используйте для аудита или отладки настроек регионов.
 
-**Example:**
+**Пример:**
 ```
 region get #Europe
 ```
-Check region status before making changes.
+Проверьте статус региона перед внесением изменений.
 
 ---
 
 
-#### View or change the home region for this node
-**Usage:**
+#### Просмотр или изменение домашнего региона узла
+**Использование:**
 - `region home`
 - `region home <name>`
 
-**Parameters:**
-- `name`: Region name
+**Параметры:**
+- `name`: Имя региона
 
-**Description:**
-Shows or sets the node's home region. Use to define the default region for routing and permissions.
+**Описание:**
+Показывает или устанавливает домашний регион узла. Используйте для определения региона по умолчанию для маршрутизации и прав.
 
-**Example:**
+**Пример:**
 ```
 region home #Europe
 ```
-Set after moving the node to a new location.
+Установите после перемещения узла на новое место.
 
 ---
 
 
-#### Create a new region
-**Usage:**
+#### Создание нового региона
+**Использование:**
 - `region put <name> [parent_name]`
 
-**Parameters:**
-- `name`: Region name
-- `parent_name`: Parent region name (optional, defaults to wildcard)
+**Параметры:**
+- `name`: Имя региона
+- `parent_name`: Имя родительского региона (необязательно, по умолчанию шаблон)
 
-**Description:**
-Creates a new region, optionally as a child of another. Use to expand or reorganize the region hierarchy.
+**Описание:**
+Создаёт новый регион, необязательно как дочерний другого. Используйте для расширения или реорганизации иерархии регионов.
 
-**Example:**
+**Пример:**
 ```
 region put #London #UK
 ```
-Add new cities or subregions as needed.
+Добавляйте новые города или субрегионы по мере необходимости.
 
 ---
 
 
-#### Remove a region
-**Usage:**
+#### Удаление региона
+**Использование:**
 - `region remove <name>`
 
-**Parameters:**
-- `name`: Region name
+**Параметры:**
+- `name`: Имя региона
 
-**Description:**
-Deletes a region. All child regions must be removed first. Use to clean up unused or obsolete regions.
+**Описание:**
+Удаляет регион. Все дочерние регионы должны быть удалены предварительно. Используйте для очистки неиспользуемых или устаревших регионов.
 
-**Example:**
+**Пример:**
 ```
 region remove #London
 ```
-Remove subregions before deleting a parent region.
+Удалите субрегионы перед удалением родительского региона.
 
 ---
 
 
-#### View all regions
-**Usage:**
+#### Просмотр всех регионов
+**Использование:**
 - `region list <filter>`
 
-**Parameters:**
-- `filter`: `allowed` or `denied`
+**Параметры:**
+- `filter`: `allowed` или `denied`
 
-**Description:**
-Lists all defined regions, filtered by allowed or denied status. Use to audit region configuration.
+**Описание:**
+Показывает все определённые регионы, отфильтрованные по статусу (разрешённые или заблокированные). Используйте для аудита конфигурации регионов.
 
-**Example:**
+**Пример:**
 ```
 region list allowed
 ```
-See which regions are currently permitted.
+Посмотрите, какие регионы в данный момент разрешены.
 
-**Serial Only:** Yes
+**Только через Serial:** Да
 
-**Note:** Requires firmware 1.12+
+**Примечание:** Требуется прошивка 1.12+
 
 ---
 
 
-#### Dump all defined regions and flood permissions
-**Usage:**
+#### Дамп всех определённых регионов и прав флудинга
+**Использование:**
 - `region`
 
-**Description:**
-Prints all regions and their flood permissions. Use for a complete overview, especially on older firmware.
+**Описание:**
+Выводит все регионы и их права флудинга. Используйте для полного обзора, особенно на старых прошивках.
 
-**Example:**
+**Пример:**
 ```
 region
 ```
-Use to export or review all region settings.
+Используйте для экспорта или просмотра всех настроек регионов.
 
-**Serial Only:** For firmware < 1.12.0
+**Только через Serial:** Для прошивки < 1.12.0
 
 ---
 
-### Region Examples
+### Примеры регионов
 
-**Example 1: Using F Flag with Named Public Region**
+**Пример 1: Использование флага F с именованным публичным регионом**
 ```
 region load
 #Europe F
-<blank line to end region load>
+<пустая строка для завершения region load>
 region save
 ```
 
-**Explanation:**
-- Creates a region named `#Europe` with flooding enabled
-- Packets from this region will be flooded to other nodes
+**Пояснение:**
+- Создаёт регион `#Europe` с включённым флудингом
+- Пакеты из этого региона будут флудиться на другие узлы
 
 ---
 
-**Example 2: Using Wildcard with F Flag**
+**Пример 2: Использование шаблона с флагом F**
 ```
 region load 
 * F
-<blank line to end region load>
+<пустая строка для завершения region load>
 region save
 ```
 
-**Explanation:**
-- Creates a wildcard region `*` with flooding enabled
-- Enables flooding for all regions automatically
-- Applies only to packets without transport codes
+**Пояснение:**
+- Создаёт шаблонный регион `*` с включённым флудингом
+- Включает флудинг для всех регионов автоматически
+- Применяется только к пакетам без транспортных кодов
 
 ---
 
-**Example 3: Using Wildcard Without F Flag**
+**Пример 3: Использование шаблона без флага F**
 ```
 region load 
 *
-<blank line to end region load>
+<пустая строка для завершения region load>
 region save
 ```
-**Explanation:**
-- Creates a wildcard region `*` without flooding
-- This region exists but doesn't affect packet distribution
-- Used as a default/empty region
+**Пояснение:**
+- Создаёт шаблонный регион `*` без флудинга
+- Регион существует, но не влияет на распределение пакетов
+- Используется как регион по умолчанию/пустой регион
 
 ---
 
-**Example 4: Nested Public Region with F Flag**
+**Пример 4: Вложенный публичный регион с флагом F**
 ```
 region load 
 #Europe F
@@ -1337,18 +1337,18 @@ region load
   #France
     #Paris
     #Lyon
-<blank line to end region load>
+<пустая строка для завершения region load>
 region save
 ```
 
-**Explanation:**
-- Creates `#Europe` region with flooding enabled
-- Adds nested child regions (`#UK`, `#France`)
-- All nested regions inherit the flooding flag from parent
+**Пояснение:**
+- Создаёт регион `#Europe` с включённым флудингом
+- Добавляет вложенные дочерние регионы (`#UK`, `#France`)
+- Все вложенные регионы наследуют флаг флудинга от родителя
 
 ---
 
-**Example 5: Wildcard with Nested Public Regions**
+**Пример 5: Шаблон с вложенными публичными регионами**
 ```
 region load 
 * F
@@ -1359,172 +1359,172 @@ region load
     #Canada
       #Ontario
       #Quebec
-<blank line to end region load>
+<пустая строка для завершения region load>
 region save
 ```
 
-**Explanation:**
-- Creates wildcard region `*` with flooding enabled
-- Adds nested `#NorthAmerica` hierarchy
-- Enables flooding for all child regions automatically
-- Useful for global networks with specific regional rules
+**Пояснение:**
+- Создаёт шаблонный регион `*` с включённым флудингом
+- Добавляет вложенную иерархию `#NorthAmerica`
+- Включает флудинг для всех дочерних регионов автоматически
+- Полезно для глобальных сетей со специфическими региональными правилами
 
 ---
-### GPS (When GPS support is compiled in)
+### GPS (при скомпилированной поддержке GPS)
 
 
-#### View or change GPS state
-**Usage:**
+#### Просмотр или изменение состояния GPS
+**Использование:**
 - `gps`
 - `gps <state>`
 
-**Parameters:**
-- `state`: `on` or `off`
+**Параметры:**
+- `state`: `on` или `off`
 
-**Description:**
-Shows or sets the GPS module state. Use to enable GPS for time/location or disable to save power.
+**Описание:**
+Показывает или устанавливает состояние модуля GPS. Используйте для включения GPS (время/местоположение) или отключения для экономии энергии.
 
-**Example:**
+**Пример:**
 ```
 gps on
 ```
-Enable GPS when you need accurate time or location.
+Включите GPS, когда нужно точное время или местоположение.
 
-**Default:** `off`
+**По умолчанию:** `off`
 
-**Note:** Output: `{status}, {fix}, {sat count}`
+**Примечание:** Вывод: `{статус}, {фикс}, {кол-во спутников}`
 
 ---
 
 
-#### Sync this node's clock with GPS time
-**Usage:**
+#### Синхронизация часов узла с временем GPS
+**Использование:**
 - `gps sync`
 
-**Description:**
-Sets the node's clock to GPS time. Use for precise timekeeping, especially in isolated deployments.
+**Описание:**
+Устанавливает часы узла по времени GPS. Используйте для точного хронометрирования, особенно в изолированных развёртываниях.
 
-**Example:**
+**Пример:**
 ```
 gps sync
 ```
-Use after enabling GPS.
+Используйте после включения GPS.
 
 ---
 
 
-#### Set this node's location based on the GPS coordinates
-**Usage:**
+#### Установка местоположения узла по GPS-координатам
+**Использование:**
 - `gps setloc`
 
-**Description:**
-Updates the node's stored location to the current GPS coordinates. Use to automate location setup.
+**Описание:**
+Обновляет сохранённое местоположение узла на текущие GPS-координаты. Используйте для автоматической настройки местоположения.
 
-**Example:**
+**Пример:**
 ```
 gps setloc
 ```
-Use after moving the node to a new site.
+Используйте после перемещения узла на новый участок.
 
 ---
 
 
-#### View or change the GPS advert policy
-**Usage:**
+#### Просмотр или изменение политики GPS-объявлений
+**Использование:**
 - `gps advert`
 - `gps advert <policy>`
 
-**Parameters:**
-- `policy`: `none` (no location), `shared` (share GPS), `prefs` (use stored lat/lon)
+**Параметры:**
+- `policy`: `none` (без местоположения), `shared` (делиться GPS), `prefs` (использовать сохранённые lat/lon)
 
-**Description:**
-Controls how the node advertises its location. Use `shared` for real-time GPS, `prefs` for static, or `none` for privacy.
+**Описание:**
+Управляет тем, как узел анонсирует своё местоположение. Используйте `shared` для GPS в реальном времени, `prefs` для статического, `none` для приватности.
 
-**Example:**
+**Пример:**
 ```
 gps advert shared
 ```
-Use `none` if you want to hide the node's location.
+Используйте `none`, если хотите скрыть местоположение узла.
 
-**Default:** `prefs`
+**По умолчанию:** `prefs`
 
 ---
 
-### Sensors (When sensor support is compiled in)
+### Датчики (при скомпилированной поддержке датчиков)
 
 
-#### View the list of sensors on this node
-**Usage:** `sensor list [start]`
+#### Просмотр списка датчиков на узле
+**Использование:** `sensor list [start]`
 
-**Parameters:**
-- `start`: Optional starting index (default 0)
+**Параметры:**
+- `start`: Необязательный начальный индекс (по умолчанию 0)
 
-**Description:**
-Lists all available sensors and their current values. Use to monitor environmental or system data.
+**Описание:**
+Показывает все доступные датчики и их текущие значения. Используйте для мониторинга окружающей среды или системных данных.
 
-**Example:**
+**Пример:**
 ```
 sensor list
 ```
-Use to check all sensor readings at once.
+Используйте для проверки всех показаний датчиков сразу.
 
 ---
 
 
-#### View or change the value of a sensor
-**Usage:**
+#### Просмотр или изменение значения датчика
+**Использование:**
 - `sensor get <key>`
 - `sensor set <key> <value>`
 
-**Parameters:**
-- `key`: Sensor name
-- `value`: Value to set
+**Параметры:**
+- `key`: Имя датчика
+- `value`: Значение для установки
 
-**Description:**
-Reads or sets a specific sensor value. Use to query or calibrate sensors.
+**Описание:**
+Считывает или устанавливает конкретное значение датчика. Используйте для запроса или калибровки датчиков.
 
-**Example:**
+**Пример:**
 ```
 sensor get temp
 sensor set temp 25
 ```
-Use to check or adjust sensor calibration.
+Используйте для проверки или настройки калибровки датчиков.
 
 ---
 
-### Bridge (When bridge support is compiled in)
+### Мост (при скомпилированной поддержке моста)
 
 
-#### View or change the bridge enabled flag
-**Usage:**
+#### Просмотр или изменение флага включения моста
+**Использование:**
 - `get bridge.enabled`
 - `set bridge.enabled <state>`
 
-**Parameters:**
-- `state`: `on` or `off`
+**Параметры:**
+- `state`: `on` или `off`
 
-**Description:**
-Enables or disables the bridge feature. Use to connect the node to an external network or interface.
+**Описание:**
+Включает или отключает функцию моста. Используйте для подключения узла к внешней сети или интерфейсу.
 
-**Example:**
+**Пример:**
 ```
 set bridge.enabled on
 ```
-Enable when connecting to a gateway or external system.
+Включите при подключении к шлюзу или внешней системе.
 
-**Default:** `off`
+**По умолчанию:** `off`
 
 ---
 
 
-#### View the bridge source
-**Usage:**
+#### Просмотр источника моста
+**Использование:**
 - `get bridge.source`
 
-**Description:**
-Shows the current source for bridged packets. Use to verify bridge configuration.
+**Описание:**
+Показывает текущий источник пакетов для моста. Используйте для проверки конфигурации моста.
 
-**Example:**
+**Пример:**
 ```
 get bridge.source
 ```
@@ -1532,109 +1532,109 @@ get bridge.source
 ---
 
 
-#### Add a delay to packets routed through this bridge
-**Usage:**
+#### Добавление задержки пакетам, маршрутизируемым через мост
+**Использование:**
 - `get bridge.delay`
 - `set bridge.delay <ms>`
 
-**Parameters:**
-- `ms`: Delay in milliseconds (0-10000)
+**Параметры:**
+- `ms`: Задержка в миллисекундах (0-10000)
 
-**Description:**
-Sets a delay for packets routed through the bridge. Use to throttle or synchronize traffic.
+**Описание:**
+Устанавливает задержку для пакетов, маршрутизируемых через мост. Используйте для ограничения скорости или синхронизации трафика.
 
-**Example:**
+**Пример:**
 ```
 set bridge.delay 1000
 ```
-Increase delay to avoid flooding the external interface.
+Увеличьте задержку, чтобы избежать флудинга внешнего интерфейса.
 
-**Default:** `500`
+**По умолчанию:** `500`
 
 ---
 
 
-#### View or change the source of packets bridged to the external interface
-**Usage:**
+#### Просмотр или изменение источника пакетов, направляемых на внешний интерфейс
+**Использование:**
 - `get bridge.source`
 - `set bridge.source <source>`
 
-**Parameters:**
-- `source`: `rx` (received) or `tx` (transmitted)
+**Параметры:**
+- `source`: `rx` (принятые) или `tx` (переданные)
 
-**Description:**
-Controls which packets are sent to the bridge. Use `rx` to bridge incoming, `tx` for outgoing packets.
+**Описание:**
+Управляет тем, какие пакеты отправляются на мост. Используйте `rx` для моста входящих, `tx` для исходящих пакетов.
 
-**Example:**
+**Пример:**
 ```
 set bridge.source rx
 ```
-Use `rx` for monitoring, `tx` for forwarding.
+Используйте `rx` для мониторинга, `tx` для пересылки.
 
-**Default:** `tx`
+**По умолчанию:** `tx`
 
 ---
 
 
-#### View or change the speed of the bridge (RS-232 only)
-**Usage:**
+#### Просмотр или изменение скорости моста (только RS-232)
+**Использование:**
 - `get bridge.baud`
 - `set bridge.baud <rate>`
 
-**Parameters:**
-- `rate`: Baud rate (`9600`, `19200`, `38400`, `57600`, `115200`)
+**Параметры:**
+- `rate`: Скорость в бодах (`9600`, `19200`, `38400`, `57600`, `115200`)
 
-**Description:**
-Sets the serial speed for the bridge. Use to match the speed of connected equipment.
+**Описание:**
+Устанавливает последовательную скорость для моста. Используйте для согласования скорости подключённого оборудования.
 
-**Example:**
+**Пример:**
 ```
 set bridge.baud 57600
 ```
-Lower speeds for legacy devices, higher for modern systems.
+Более низкие скорости — для устаревших устройств, более высокие — для современных систем.
 
-**Default:** `115200`
+**По умолчанию:** `115200`
 
 ---
 
 
-#### View or change the channel used for bridging (ESPNow only)
-**Usage:**
+#### Просмотр или изменение канала моста (только ESPNow)
+**Использование:**
 - `get bridge.channel`
 - `set bridge.channel <channel>`
 
-**Parameters:**
-- `channel`: Channel number (1-14)
+**Параметры:**
+- `channel`: Номер канала (1-14)
 
-**Description:**
-Sets the WiFi/ESPNow channel for bridging. Use to avoid interference or match your network.
+**Описание:**
+Устанавливает WiFi/ESPNow канал для моста. Используйте для избежания помех или согласования с вашей сетью.
 
-**Example:**
+**Пример:**
 ```
 set bridge.channel 6
 ```
-Choose a channel with minimal interference.
+Выберите канал с минимальными помехами.
 
 ---
 
 
-#### Set the ESP-Now secret
-**Usage:**
+#### Установка секрета ESP-Now
+**Использование:**
 - `get bridge.secret`
 - `set bridge.secret <secret>`
 
-**Parameters:**
-- `secret`: 16-character encryption secret
+**Параметры:**
+- `secret`: 16-символьный ключ шифрования
 
-**Description:**
-Sets the encryption key for ESP-Now bridging. Use to secure communications between nodes.
+**Описание:**
+Устанавливает ключ шифрования для моста ESP-Now. Используйте для обеспечения безопасности связи между узлами.
 
-**Example:**
+**Пример:**
 ```
 set bridge.secret mysecretkey12345
 ```
-Change if you suspect the key is compromised.
+Измените, если подозреваете компрометацию ключа.
 
-**Default:** Varies by board
+**По умолчанию:** Зависит от платы
 
 ---
