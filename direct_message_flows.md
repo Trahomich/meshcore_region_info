@@ -1,84 +1,84 @@
-# Direct Message Flows in MeshCore
+# Потоки прямых сообщений в MeshCore
 
 
-This document explains how direct messages (DMs) are routed in MeshCore, focusing on three scenarios:
-- Direct message with a set path
-- Direct message as a flood
-- Direct message as direct (client-to-client, nearby)
+Этот документ объясняет маршрутизацию прямых сообщений (DM) в MeshCore, рассматривая три сценария:
+- Прямое сообщение с заданным путём
+- Прямое сообщение как флуд (широковещательная рассылка)
+- Прямое сообщение «напрямую» (клиент-клиент, рядом)
 
-## General Information
+## Общая информация
 
-A direct message (DM) in MeshCore is a secure, private packet sent from one node to another. For two nodes to exchange direct messages, both must have each other's public key and be added as contacts. This ensures that only intended recipients can decrypt and validate messages.
+Прямое сообщение (DM) в MeshCore — это защищённый приватный пакет, отправляемый от одного узла другому. Чтобы два узла могли обмениваться прямыми сообщениями, оба должны иметь открытый ключ друг друга и быть добавлены в контакты. Это гарантирует, что только предполагаемые получатели могут расшифровать и проверить сообщения.
 
-**Encryption and Validation:**
-- The sender encrypts the message using the receiver's public key.
-- The receiver decrypts the message using their private key, ensuring confidentiality and authenticity.
-- This mechanism prevents eavesdropping and guarantees that only the intended recipient can read the message.
+**Шифрование и проверка:**
+- Отправитель шифрует сообщение с использованием открытого ключа получателя.
+- Получатель расшифровывает сообщение с помощью своего закрытого ключа, обеспечивая конфиденциальность и подлинность.
+- Этот механизм предотвращает перехват и гарантирует, что только предполагаемый получатель может прочитать сообщение.
 
-**Contact Requirement:**
-- Both sender and receiver must have exchanged public keys and be present in each other's contact list.
-- This is typically done during an initial handshake or contact exchange process.
+**Требование к контактам:**
+- Отправитель и получатель должны обменяться открытыми ключами и присутствовать в списках контактов друг друга.
+- Обычно это делается в процессе начального рукопожатия или обмена контактами.
 
-**Routing Types:**
-- **Set Path:** The sender specifies a list of nodes (repeaters) that the message must traverse. Only nodes in the path forward the message; others ignore it.
-- **Flood:** The message is broadcast to all nodes, and every repeater forwards it until it reaches the destination or a TTL expires.
-- **Direct (Nearby):** The message is sent directly from one client to another if they are within radio range, without involving repeaters.
+**Типы маршрутизации:**
+- **Заданный путь (Set Path):** Отправитель указывает список узлов (репитеров), через которые должно пройти сообщение. Только узлы из пути пересылают сообщение; остальные игнорируют его.
+- **Флуд (Flood):** Сообщение широковещательно рассылается всем узлам, и каждый репитер пересылает его, пока оно не достигнет адресата или не истечёт TTL.
+- **Напрямую (Direct, Nearby):** Сообщение отправляется напрямую от одного клиента другому, если они находятся в зоне действия радиосвязи, без участия репитеров.
 
-Direct messages are designed for privacy, reliability, and flexibility in routing, making them suitable for secure communication in mesh networks.
+Прямые сообщения разработаны для обеспечения приватности, надёжности и гибкости маршрутизации, что делает их подходящими для защищённой связи в mesh-сетях.
 
 ---
 
-## 1. Direct Message with a Set Path
+## 1. Прямое сообщение с заданным путём
 
 ```mermaid
 flowchart TD
-    A[Sender:<br>Send direct<br>message with path] --> B[Repeater1:<br>Is my hash<br>first in path?]
-    B -- Yes --> C[Remove self<br>from path]
-    C --> D[Forward to next<br>node in path]
-    B -- No --> E[Ignore packet]
-    D --> F[Repeater2:<br>Is my hash<br>first in path?]
-    F -- Yes --> G[Remove self<br>from path]
-    G --> H[Forward to next<br>node in path]
-    F -- No --> I[Ignore packet]
-    H --> J[Receiver:<br>Is my hash<br>first in path?]
-    J -- Yes --> K[Process message]
-    J -- No --> L[Ignore packet]
-    subgraph Non-path repeater
-        M[RepeaterX:<br>Is my hash<br>first in path?]
-        M -- No --> N[Ignore packet]
+    A[Отправитель:<br>Отправить прямое<br>сообщение с путём] --> B[Репитер1:<br>Мой хеш<br>первый в пути?]
+    B -- Да --> C[Удалить себя<br>из пути]
+    C --> D[Переслать<br>следующему узлу]
+    B -- Нет --> E[Игнорировать пакет]
+    D --> F[Репитер2:<br>Мой хеш<br>первый в пути?]
+    F -- Да --> G[Удалить себя<br>из пути]
+    G --> H[Переслать<br>следующему узлу]
+    F -- Нет --> I[Игнорировать пакет]
+    H --> J[Получатель:<br>Мой хеш<br>первый в пути?]
+    J -- Да --> K[Обработать сообщение]
+    J -- Нет --> L[Игнорировать пакет]
+    subgraph Репитер вне пути
+        M[РепитерX:<br>Мой хеш<br>первый в пути?]
+        M -- Нет --> N[Игнорировать пакет]
     end
 ```
 
 ---
 
-## 2. Direct Message as Flood
+## 2. Прямое сообщение как флуд
 
 ```mermaid
 flowchart TD
-    A[Sender:<br>Send direct<br>message as flood] --> B[Repeater1:<br>Forward packet]
-    B --> C[Repeater2:<br>Forward packet]
-    C --> D[RepeaterX:<br>Forward packet]
-    D --> E[Receiver:<br>Process message]
-    B --> F[Other repeaters:<br>Forward packet]
+    A[Отправитель:<br>Отправить прямое<br>сообщение как флуд] --> B[Репитер1:<br>Переслать пакет]
+    B --> C[Репитер2:<br>Переслать пакет]
+    C --> D[РепитерX:<br>Переслать пакет]
+    D --> E[Получатель:<br>Обработать сообщение]
+    B --> F[Другие репитеры:<br>Переслать пакет]
     F --> E
     C --> F
 ```
 
 ---
 
-## 3. Direct Message as Direct (Client-to-Client, Nearby)
+## 3. Прямое сообщение «напрямую» (клиент-клиент, рядом)
 
 ```mermaid
 flowchart TD
-    A[Sender:<br>Send direct<br>message] --> B[Receiver:<br>Is nearby?]
-    B -- Yes --> C[Process message]
-    B -- No --> D[No delivery]
+    A[Отправитель:<br>Отправить прямое<br>сообщение] --> B[Получатель:<br>Рядом?]
+    B -- Да --> C[Обработать сообщение]
+    B -- Нет --> D[Доставка невозможна]
 ```
 
 ---
 
-## Summary
+## Итоги
 
-- **Set Path:** Only specified repeaters forward the message.
-- **Flood:** All repeaters forward the message until it reaches the destination.
-- **Direct (Nearby):** Message is delivered directly if the receiver is within range.
+- **Заданный путь:** Только указанные репитеры пересылают сообщение.
+- **Флуд:** Все репитеры пересылают сообщение, пока оно не достигнет адресата.
+- **Напрямую (рядом):** Сообщение доставляется напрямую, если получатель находится в зоне действия.

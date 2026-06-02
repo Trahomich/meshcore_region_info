@@ -1,104 +1,100 @@
-## Table of Contents
+## Содержание
 
-- [1. Meshcore region guide](#1-meshcore-region-guide)
-- [2. The core concept](#2-the-core-concept)
-- [3. Important notes](#3-important-notes)
-- [4. Setting a region on your repeater](#4-setting-a-region-on-your-repeater)
-  - [4.1 What does it mean?](#41-what-does-it-mean)
-  - [4.2 Set region via Command line](#42-set-region-via-command-line)
-  - [4.2 Set region in App](#42-set-region-in-app)
-- [5. Add regions that can be used for channels (client app)](#5-add-regions-that-can-be-used-for-channels-client-app)
-- [6 Flow charts](#6-flow-charts)
-- [7 Interesting links](#7-interesting-links)
+- [1. Руководство по регионам MeshCore](#1-руководство-по-регионам-meshcore)
+- [2. Основная концепция](#2-основная-концепция)
+- [3. Важные замечания](#3-важные-замечания)
+- [4. Установка региона на репитере](#4-установка-региона-на-репитере)
+  - [4.1 Что это значит?](#41-что-это-значит)
+  - [4.2 Установка региона через командную строку](#42-установка-региона-через-командную-строку)
+  - [4.2 Установка региона в приложении](#42-установка-региона-в-приложении)
+- [5. Добавление регионов для каналов (клиентское приложение)](#5-добавление-регионов-для-каналов-клиентское-приложение)
+- [6 Блок-схемы](#6-блок-схемы)
+- [7 Полезные ссылки](#7-полезные-ссылки)
 
 
-# 1. Meshcore region guide
-Meshcore regions are introduced to limit the load on our mesh network. By adding regions, the network will contain fewer unnecessary hops. At the moment of writing, regions will only apply to channels and will not affect direct messages (DMs).
+# 1. Руководство по регионам MeshCore
+Регионы MeshCore введены для ограничения нагрузки на mesh-сеть. Благодаря регионам сеть содержит меньше лишних промежуточных узлов (hops). На момент написания этого документа регионы применяются только к каналам и не затрагивают прямые сообщения (DM).
 
-**IMPORTANT to watch first:** Clear region overview video: https://www.youtube.com/watch?v=2LPwjfuCr3Y
+**ВАЖНО посмотреть сначала:** Наглядное видео о регионах: https://www.youtube.com/watch?v=2LPwjfuCr3Y
 
-# 2. The core concept
-1. A repeater adds regions
-2. A repeater adds allow flood rules
-3. A client node user adds a region flag to a message in a channel
-4. The chosen region will apply to the sent message
-5. Only repeaters that contain the provided region flag will repeat that message
+# 2. Основная концепция
+1. Репитер добавляет регионы
+2. Репитер добавляет правила разрешения флуда (allow flood)
+3. Пользователь клиентского узла добавляет флаг региона к сообщению в канале
+4. Выбранный регион применяется к отправленному сообщению
+5. Только репитеры, содержащие указанный флаг региона, будут повторять это сообщение
 
-# 3. Important notes
-- At the moment of writing, regions will only apply to channels and will not affect direct messages (DMs).
-- By default, a repeater will have a region set to *. This * means a repeater will forward messages without a region flag added to that message. This will prevent blocking messages and allow public channels to be world-scoped.
-- At the time of writing, there is no working hierarchy. This means nl (The Netherlands) is a scope, but nl-li (The Netherlands - Limburg) is as well, so it will allow both.
+# 3. Важные замечания
+- На момент написания этого документа регионы применяются только к каналам и не затрагивают прямые сообщения (DM).
+- По умолчанию репитер имеет регион, установленный как `*`. Этот `*` означает, что репитер будет пересылать сообщения без флага региона. Это предотвращает блокировку сообщений и позволяет публичным каналам иметь глобальную область действия.
+- На момент написания рабочей иерархии нет. Это значит, что `nl` (Нидерланды) — это область, но `nl-li` (Нидерланды — Лимбург) тоже является областью, поэтому будут разрешены обе.
 
-# 4. Setting a region on your repeater
-There are two ways to set the region on your repeater:
-1. Command line
-2. App
+# 4. Установка региона на репитере
+Есть два способа установить регион на репитере:
+1. Командная строка
+2. Приложение
 
-## 4.1 What does it mean?
-- Region: The regions that apply to the repeater
-- Allowf: Means allowing floods/forwards from a specified region
+## 4.1 Что это значит?
+- Region: Регионы, применяемые к репитеру
+- Allowf: Означает разрешение флуда/пересылки из указанного региона
 
-## 4.2 Set region via Command line
-It is possible to add more than one region. This is recommended when you live in an area that borders multiple regions.  
-For example: my repeater is located in The Netherlands — region Limburg. Because limburg borders it is best practice to allow nearby regions (North Brabant)
-Setting your region:
+## 4.2 Установка региона через командную строку
+Можно добавить более одного региона. Это рекомендуется, если вы находитесь в районе, граничащем с несколькими регионами.
+Например: мой репитер расположен в Нидерландах — регион Лимбург. Поскольку Лимбург граничит с другими регионами, рекомендуется разрешить ближайшие регионы (Северный Брабант).
+
+Установка региона:
 ```
-region put nl-li (setting it to the Netherlands and Limburg (li))
-region put nl-nb (setting it to the Netherlands and North Brabant (nb))
-region save (By saving, you'll not need a reboot)
-```
-Setting allow floods:
-```
-region allowf nl-li (setting it to the Netherlands and Limburg (li))
-region allowf nl-nb (setting it to the Netherlands and North Brabant (nb))
-region save (By saving, you'll not need a reboot)
+region put nl-li (установка Нидерланды и Лимбург (li))
+region put nl-nb (установка Нидерланды и Северный Брабант (nb))
+region save (При сохранении перезагрузка не требуется)
 ```
 
-## 4.2 Set region in App 
-1. Open the app
-2. Sign in to your repeater
-3. Go to settings
-4. Click 'Manage regions'
+Установка разрешения флуда:
+```
+region allowf nl-li (установка Нидерланды и Лимбург (li))
+region allowf nl-nb (установка Нидерланды и Северный Брабант (nb))
+region save (При сохранении перезагрузка не требуется)
+```
+
+## 4.2 Установка региона в приложении
+1. Откройте приложение
+2. Войдите в свой репитер
+3. Перейдите в настройки
+4. Нажмите «Manage regions»
 <img width="585" height="166" alt="image" src="https://github.com/user-attachments/assets/b9565a47-d925-4a17-9996-ff499fef979d" />
 
-5. Click the '+' icon
-6. Add your region (for example 'nl-li')
-7. Save
-8. By default, allow flood/forwarding is disabled — enable this if needed
+5. Нажмите значок «+»
+6. Добавьте свой регион (например, «nl-li»)
+7. Сохраните
+8. По умолчанию разрешение флуда/пересылки отключено — включите при необходимости
 <img width="237" height="512" alt="image" src="https://github.com/user-attachments/assets/275e71c2-adb9-4fd4-86d8-19486119e4e4" />
 
-# 5. Add regions that can be used for channels (client app)
-1. Open a channel
-2. Click the dots in the top right corner
-3. Click "Set Region Scope"
+# 5. Добавление регионов для каналов (клиентское приложение)
+1. Откройте канал
+2. Нажмите на три точки в правом верхнем углу
+3. Нажмите «Set Region Scope»
 <img width="223" height="237" alt="image" src="https://github.com/user-attachments/assets/1c383be3-b3da-46e2-8e82-4b5c4b9e11d2" />
 
-4. Add regions
+4. Добавьте регионы
 <img width="293" height="305" alt="image" src="https://github.com/user-attachments/assets/9deda9d0-2af2-4cac-8c9c-be747dda8a56" />
 
-5. After creating regions, you can apply one to a channel. You can change it by clicking the channel name. The app will remember the region for each channel.
+5. После создания регионов вы можете применить один к каналу. Изменить его можно, нажав на название канала. Приложение запомнит регион для каждого канала.
 <img width="293" height="292" alt="image" src="https://github.com/user-attachments/assets/f70d8236-f4d5-45a4-9445-407d122ae94f" />
 
-# 5 region codes
-Provinces: 
+# 5 Коды регионов
+Провинции/штаты:
 https://service.unece.org/trade/locode/2024-2%20SubdivisionCodes.htm
 
-Countries:
+Страны:
 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 
-# 6 Flow charts
+# 6 Блок-схемы
 <img width="538" height="433" alt="image" src="https://github.com/user-attachments/assets/c2b0c94c-2771-4ebb-9174-6891ef54f6b4" />
 <img width="538" height="219" alt="image" src="https://github.com/user-attachments/assets/bf104a21-4f22-4dc0-8357-1d797594b13e" />
 
 <img width="1158" height="348" alt="image" src="https://github.com/user-attachments/assets/47c15eca-a427-4bd8-9e55-b79d15572a16" />
 
-# 7 interesting links
-- regions overview: https://www.youtube.com/watch?v=2LPwjfuCr3Y
-- channels forum discussion: https://forum.letsmesh.net/t/regio-codes-nederland/301
-- region filtering: https://buymeacoffee.com/ripplebiz/region-filtering
-
-
-
-
-
-
+# 7 Полезные ссылки
+- Обзор регионов: https://www.youtube.com/watch?v=2LPwjfuCr3Y
+- Обсуждение каналов на форуме: https://forum.letsmesh.net/t/regio-codes-nederland/301
+- Фильтрация регионов: https://buymeacoffee.com/ripplebiz/region-filtering

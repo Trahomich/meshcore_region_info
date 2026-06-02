@@ -1,54 +1,54 @@
-# Regions Guide: Managing Message Scopes in MeshCore
+# Руководство по регионам: управление областью сообщений в MeshCore
 
-## Flowchart: Region-based Packet Forwarding
+## Блок-схема: пересылка пакетов на основе регионов
 
 ```mermaid
 flowchart TD
-  A[Packet Received by Repeater] --> B{Packet has transport codes?}
-  B -- Yes --> C[Find matching region in region map]
-  C -- Match found --> D{Region allows flooding? (allowf)}
-  D -- Yes --> E[Forward packet]
-  D -- No --> F[Drop packet]
-  C -- No match --> G{Wildcard region allows flooding?}
-  G -- Yes --> E
-  G -- No --> F
-  B -- No --> H{Wildcard region allows flooding?}
-  H -- Yes --> E
-  H -- No --> F
+  A[Пакет получен репитером] --> B{Пакет содержит транспортные коды?}
+  B -- Да --> C[Найти соответствующий регион в карте регионов]
+  C -- Найдено --> D{Регион разрешает флуд? (allowf)}
+  D -- Да --> E[Переслать пакет]
+  D -- Нет --> F[Отбросить пакет]
+  C -- Не найдено --> G{Шаблонный регион разрешает флуд?}
+  G -- Да --> E
+  G -- Нет --> F
+  B -- Нет --> H{Шаблонный регион разрешает флуд?}
+  H -- Да --> E
+  H -- Нет --> F
     
   style E fill:#b2f2b2,stroke:#333,stroke-width:2px
   style F fill:#f2b2b2,stroke:#333,stroke-width:2px
 ```
 
-## Overview
+## Обзор
 
-Regions are a powerful feature in MeshCore that enables network administrators to organize their mesh networks into logical geographic or functional zones. They provide control over message flooding and repeating behavior, allowing fine-grained control over which parts of the network forward (repeat) messages to their neighbors.
+Регионы — это мощная функция MeshCore, позволяющая администраторам сети организовывать mesh-сети в логические географические или функциональные зоны. Они обеспечивают контроль над поведением флуда и повторной пересылки сообщений, позволяя детально настраивать, какие части сети пересылают (репитят) сообщения своим соседям.
 
-This guide explains:
-- What regions are and how they work
-- The concept of region scopes and transport codes
-- The `allowf` (allow flood) flag and its behavior
-- How repeaters decide whether to forward messages
-- Practical examples and best practices
+Это руководство объясняет:
+- Что такое регионы и как они работают
+- Концепцию областей регионов и транспортных кодов
+- Флаг `allowf` (разрешить флуд) и его поведение
+- Как репитеры принимают решение о пересылке сообщений
+- Практические примеры и лучшие практики
 
 ---
 
-## Regions: Fundamental Concepts
+## Регионы: основные концепции
 
-### What is a Region?
+### Что такое регион?
 
-A **region** is a named organizational unit that represents a logical area or group in your mesh network. Regions are typically named after geographic locations or functional areas, such as:
+**Регион** — это именованная организационная единица, представляющая логическую область или группу в mesh-сети. Регионы обычно называются по географическому расположению или функциональным областям, например:
 - `#Europe`, `#NorthAmerica`, `#Asia`
 - `#London`, `#Paris`, `#NewYork`
 - `#Building1`, `#Floor2`, `#OfficeA`
 - `#Warehouse`, `#StorageFacility`
 
-### Region Structure
+### Структура регионов
 
-Regions are organized in a **hierarchical tree structure** with parent-child relationships:
+Регионы организованы в **иерархическую древовидную структуру** с отношениями «родитель-потомок»:
 
 ```
-*  (wildcard - root)
+*  (шаблон - корень)
 ├── #Europe
 │   ├── #UK
 │   │   ├── #London
@@ -65,177 +65,177 @@ Regions are organized in a **hierarchical tree structure** with parent-child rel
         └── #Quebec
 ```
 
-### Key Region Properties
+### Основные свойства региона
 
-Each region has the following properties:
+Каждый регион имеет следующие свойства:
 
-| Property | Description |
-|----------|-------------|
-| **ID** | A unique 16-bit identifier (auto-assigned) |
-| **Name** | A human-readable name (max 30 characters) |
-| **Parent ID** | The ID of the parent region in the hierarchy |
-| **Flags** | Bit flags controlling behavior (e.g., ALLOW/DENY flooding) |
+| Свойство | Описание |
+|----------|----------|
+| **ID** | Уникальный 16-битный идентификатор (назначается автоматически) |
+| **Имя** | Читаемое имя (максимум 30 символов) |
+| **ID родителя** | ID родительского региона в иерархии |
+| **Флаги** | Битовые флаги, управляющие поведением (например, РАЗРЕШИТЬ/ЗАПРЕТИТЬ флуд) |
 
-### The Wildcard Region (`*`)
+### Шаблонный регион (`*`)
 
-The wildcard region is the **root of the hierarchical tree**. It represents:
-- A catch-all default zone
-- The fallback region for packets without explicit transport codes
-- The top-level parent to which other regions attach
+Шаблонный регион — это **корень иерархического дерева**. Он представляет:
+- Зону по умолчанию, ловящую всё
+- Резервный регион для пакетов без явных транспортных кодов
+| Родительский элемент верхнего уровня, к которому привязаны другие регионы
 
-By default, the wildcard region **allows flooding** (the `F` flag is set).
+По умолчанию шаблонный регион **разрешает флуд** (флаг `F` установлен).
 
 ---
 
-## Region Scopes and Transport Codes
+## Области регионов и транспортные коды
 
-### What is a Region Scope?
+### Что такое область региона?
 
-A **region scope** defines which region(s) a message is intended for. It's the mechanism by which senders indicate to repeaters: _"This message is for the Europe region" or "This message is for the London subregion."_
+**Область региона** определяет, для какого региона(ов) предназначено сообщение. Это механизм, с помощью которого отправители указывают репитерам: _«Это сообщение для региона Europe» или «Это сообщение для подрегиона London»._
 
-### Understanding Transport Codes
+### Понимание транспортных кодов
 
-Transport codes are the technical mechanism used to encode region scope information in packets. Each packet can carry **two 16-bit transport codes**:
+Транспортные коды — это технический механизм, используемый для кодирования информации об области региона в пакетах. Каждый пакет может содержать **два 16-битных транспортных кода**:
 
 ```
 uint16_t transport_codes[2];
 ```
 
-- **transport_codes[0]**: Encodes the **sender's scope** (which region the sender is in)
-- **transport_codes[1]**: Encodes the **intended reply/response scope** (where replies should go)
+- **transport_codes[0]**: Кодирует **область отправителя** (в каком регионе находится отправитель)
+- **transport_codes[1]**: Кодирует **область ответа** (куда должны направляться ответы)
 
-Each transport code is a **cryptographic hash** computed from:
-1. The region's unique ID
-2. The region's name (with automatic "#" prefix)
-3. The packet data
+Каждый транспортный код — это **криптографический хеш**, вычисленный из:
+1. Уникального ID региона
+2. Имени региона (с автоматическим префиксом «#»)
+3. Данных пакета
 
-### How Transport Codes Work
+### Как работают транспортные коды
 
-When a sender wants to send a message scoped to a specific region:
+Когда отправитель хочет отправить сообщение, привязанное к определённому региону:
 
-1. The sender selects a region (e.g., `#Europe`)
-2. The sender generates a transport code by hashing the region ID/name with the packet data
-3. The sender includes this transport code in the packet's `transport_codes[0]` field
-4. Repeaters in the mesh receive the packet
-5. Each repeater checks if this transport code matches any of its **configured regions**
-6. If there's a match AND the region allows flooding (`allowf` is set), the repeater forwards the packet
-7. If no match is found or flooding is denied, the repeater drops the packet
+1. Отправитель выбирает регион (например, `#Europe`)
+2. Отправитель генерирует транспортный код, хешируя ID/имя региона с данными пакета
+3. Отправитель включает этот транспортный код в поле `transport_codes[0]` пакета
+4. Репитеры в mesh-сети получают пакет
+5. Каждый репитер проверяет, соответствует ли этот транспортный код любому из его **настроенных регионов**
+6. Если есть совпадение И регион разрешает флуд (установлен `allowf`), репитер пересылает пакет
+7. Если совпадение не найдено или флуд запрещён, репитер отбрасывает пакет
 
-### Transport Code Matching
+### Сопоставление транспортных кодов
 
-A repeater matches a transport code by:
+Репитер сопоставляет транспортный код следующим образом:
 
-1. Checking each region in its region map
-2. Computing what the transport code **should be** for each region
-3. Comparing it against the packet's `transport_codes[0]`
-4. If any region matches, that region becomes the packet's **region scope**
+1. Проверяет каждый регион в своей карте регионов
+2. Вычисляет, каким транспортный код **должен быть** для каждого региона
+3. Сравнивает его с `transport_codes[0]` пакета
+4. Если любой регион совпадает, этот регион становится **областью региона** пакета
 
-**Example:**
+**Пример:**
 ```
-Packet arrives with transport_codes[0] = 0x1A2B
-Repeater's region map contains:
-  - #Europe (ID: 2) -> computes to 0x1A2B  ✓ MATCH!
-  - #Asia (ID: 3) -> computes to 0x3C4D
-  - #Africa (ID: 4) -> computes to 0x5E6F
-Result: Packet is scoped to #Europe
+Пакет поступает с transport_codes[0] = 0x1A2B
+Карта регионов репитера содержит:
+  - #Europe (ID: 2) -> вычислено как 0x1A2B  ✓ СОВПАДЕНИЕ!
+  - #Asia (ID: 3) -> вычислено как 0x3C4D
+  - #Africa (ID: 4) -> вычислено как 0x5E6F
+Результат: Пакет привязан к #Europe
 ```
 
 ---
 
-## The `allowf` Flag: Allow Flooding
+## Флаг `allowf`: разрешение флуда
 
-### What is `allowf`?
+### Что такое `allowf`?
 
-The **`allowf`** (allow flood) flag determines whether a region permits **flooding** of messages to neighbor nodes. This is the primary control mechanism for repeater behavior.
+Флаг **`allowf`** (allow flood) определяет, разрешает ли регион **флуд** (широковещательную рассылку) сообщений соседним узлам. Это основной механизм управления поведением репитера.
 
-| Flag State | Behavior | Meaning |
-|-----------|----------|---------|
-| **Set (Enabled)** | Messages CAN be repeated/flooded | Repeaters forward messages scoped to this region |
-| **Not Set (Disabled)** | Messages CANNOT be repeated | Repeaters drop messages scoped to this region |
+| Состояние флага | Поведение | Значение |
+|-----------------|-----------|----------|
+| **Установлен (включён)** | Сообщения МОГУТ пересылаться/флудиться | Репитеры пересылают сообщения, привязанные к этому региону |
+| **Не установлен (выключен)** | Сообщения НЕ МОГУТ пересылаться | Репитеры отбрасывают сообщения, привязанные к этому региону |
 
-### The Flag Internally
+### Внутреннее представление флага
 
-Internally, this is represented as a bit flag in each `RegionEntry`:
+Внутри это представлено как битовый флаг в каждом `RegionEntry`:
 
 ```cpp
-#define REGION_DENY_FLOOD   0x01    // flag value
+#define REGION_DENY_FLOOD   0x01    // значение флага
 
-// In RegionEntry:
-uint8_t flags;  // contains REGION_DENY_FLOOD bit
+// В RegionEntry:
+uint8_t flags;  // содержит бит REGION_DENY_FLOOD
 
-// When flags & REGION_DENY_FLOOD == 0: Flooding ALLOWED (F flag set)
-// When flags & REGION_DENY_FLOOD == 1: Flooding DENIED (F flag not set)
+// Когда flags & REGION_DENY_FLOOD == 0: Флуд РАЗРЕШЁН (флаг F установлен)
+// Когда flags & REGION_DENY_FLOOD == 1: Флуд ЗАПРЕЩЁН (флаг F не установлен)
 ```
 
-Note the **inverted logic**: The `REGION_DENY_FLOOD` flag being SET means flooding is **DENIED**.
+Обратите внимание на **инвертированную логику**: Установка флага `REGION_DENY_FLOOD` означает, что флуд **ЗАПРЕЩЁН**.
 
-### Setting and Clearing `allowf`
+### Установка и сброс `allowf`
 
-**Via CLI Commands:**
+**Через CLI-команды:**
 
 ```bash
-# Allow flooding for a region
-region allowf <region_name>
+# Разрешить флуд для региона
+region allowf <имя_региона>
 
-# Deny flooding for a region
-region denyf <region_name>
+# Запретить флуд для региона
+region denyf <имя_региона>
 ```
 
-**Programmatically:**
+**Программно:**
 
 ```cpp
-// Allow flooding
+// Разрешить флуд
 region->flags &= ~REGION_DENY_FLOOD;
 
-// Deny flooding
+// Запретить флуд
 region->flags |= REGION_DENY_FLOOD;
 ```
 
 ---
 
-## How Repeaters Use Regions and Transport Codes
+## Как репитеры используют регионы и транспортные коды
 
-### The Packet Forwarding Decision
+### Решение о пересылке пакета
 
-When a repeater receives a flooded packet, it makes a forwarding decision using this logic:
+Когда репитер получает флуд-пакет, он принимает решение о пересылке по следующей логике:
 
 ```
-1. Extract transport_codes[0] from the incoming packet
-2. Try to find a region that matches this transport code
-   - Use region_map.findMatch(packet, REGION_DENY_FLOOD)
-   - This returns the first region whose transport code matches
-3. If a matching region is found:
-   - Store it as recv_pkt_region
-   - Check if the region has the DENY_FLOOD flag set
-   - If DENY_FLOOD is SET: Block the packet (don't forward)
-   - If DENY_FLOOD is NOT SET: Allow forwarding
-4. If NO matching region is found:
-   - Check the wildcard region's flags
-   - If wildcard allows flooding: Forward the packet
-   - If wildcard denies flooding: Block the packet
+1. Извлечь transport_codes[0] из входящего пакета
+2. Попробовать найти регион, соответствующий этому транспортному коду
+   - Использовать region_map.findMatch(packet, REGION_DENY_FLOOD)
+   - Возвращает первый регион, чей транспортный код совпадает
+3. Если соответствующий регион найден:
+   - Сохранить его как recv_pkt_region
+   - Проверить, установлен ли флаг DENY_FLOOD у региона
+   - Если DENY_FLOOD УСТАНОВЛЕН: Заблокировать пакет (не пересылать)
+   - Если DENY_FLOOD НЕ УСТАНОВЛЕН: Разрешить пересылку
+4. Если СООТВЕТСТВУЮЩИЙ РЕГИОН НЕ НАЙДЕН:
+   - Проверить флаги шаблонного региона
+   - Если шаблон разрешает флуд: Переслать пакет
+   - Если шаблон запрещает флуд: Заблокировать пакет
 ```
 
-### Code Reference
+### Ссылка на код
 
-From `simple_repeater/MyMesh.cpp`:
+Из `simple_repeater/MyMesh.cpp`:
 
 ```cpp
 bool MyMesh::filterRecvFloodPacket(mesh::Packet* pkt) {
-  // Determine which region this packet belongs to
+  // Определяем, к какому региону принадлежит пакет
   if (pkt->getRouteType() == ROUTE_TYPE_TRANSPORT_FLOOD) {
-    // Packet has explicit transport codes
+    // Пакет имеет явные транспортные коды
     recv_pkt_region = region_map.findMatch(pkt, REGION_DENY_FLOOD);
   } else if (pkt->getRouteType() == ROUTE_TYPE_FLOOD) {
-    // Regular flood packet (no transport codes)
+    // Обычный флуд-пакет (без транспортных кодов)
     if (region_map.getWildcard().flags & REGION_DENY_FLOOD) {
-      recv_pkt_region = NULL;  // Wildcard denies flooding
+      recv_pkt_region = NULL;  // Шаблон запрещает флуд
     } else {
-      recv_pkt_region = &region_map.getWildcard();  // Wildcard allows
+      recv_pkt_region = &region_map.getWildcard();  // Шаблон разрешает
     }
   } else {
-    recv_pkt_region = NULL;  // Direct routes don't use regions
+    recv_pkt_region = NULL;  // Прямые маршруты не используют регионы
   }
-  return false;  // Continue with normal processing
+  return false;  // Продолжить обычную обработку
 }
 
 bool MyMesh::allowPacketForward(const mesh::Packet *packet) {
@@ -243,8 +243,8 @@ bool MyMesh::allowPacketForward(const mesh::Packet *packet) {
   if (packet->isRouteFlood() && packet->path_len >= _prefs.flood_max) 
     return false;
   
-  // The critical check: if packet has transport codes but no matching region
-  // (or wildcard doesn't allow), block it
+  // Критическая проверка: если у пакета есть транспортные коды,
+  // но нет соответствующего региона (или шаблон не разрешает) — блокируем
   if (packet->isRouteFlood() && recv_pkt_region == NULL) {
     MESH_DEBUG_PRINTLN("allowPacketForward: unknown transport code, "
                        "or wildcard not allowed for FLOOD packet");
@@ -256,93 +256,93 @@ bool MyMesh::allowPacketForward(const mesh::Packet *packet) {
 
 ---
 
-## Packet Forwarding Scenarios
+## Сценарии пересылки пакетов
 
-### Scenario 1: Packet WITH Transport Code + Region Allows Flooding
+### Сценарий 1: Пакет С транспортным кодом + Регион разрешает флуд
 
-**Setup:**
-- Repeater has region `#Europe` (allowf enabled)
-- Packet arrives with transport_codes[0] matching `#Europe`
+**Настройка:**
+- Репитер имеет регион `#Europe` (allowf включён)
+- Пакет поступает с transport_codes[0], соответствующим `#Europe`
 
-**Result:** ✅ **FORWARDED**
-- `recv_pkt_region` = `#Europe` region object
-- `#Europe` region has allowf flag set (DENY_FLOOD is NOT set)
-- Repeater forwards packet to neighbors
-
----
-
-### Scenario 2: Packet WITH Transport Code + Region Denies Flooding
-
-**Setup:**
-- Repeater has region `#SecureData` (allowf disabled / denyf enabled)
-- Packet arrives with transport_codes[0] matching `#SecureData`
-
-**Result:** ❌ **DROPPED**
-- `recv_pkt_region` = `#SecureData` region object
-- `#SecureData` region has denyf flag set (DENY_FLOOD is set)
-- `allowPacketForward()` checks the flag and returns false
-- Packet is NOT forwarded
+**Результат:** ✅ **ПЕРЕСЛАН**
+- `recv_pkt_region` = объект региона `#Europe`
+- Регион `#Europe` имеет установленный флаг allowf (DENY_FLOOD НЕ установлен)
+- Репитер пересылает пакет соседям
 
 ---
 
-### Scenario 3: Packet WITH Transport Code + No Matching Region
+### Сценарий 2: Пакет С транспортным кодом + Регион запрещает флуд
 
-**Setup:**
-- Repeater has regions: `#Europe`, `#Asia`
-- Packet arrives with a transport code for `#Africa` (unknown to this repeater)
+**Настройка:**
+- Репитер имеет регион `#SecureData` (allowf выключен / denyf включён)
+- Пакет поступает с transport_codes[0], соответствующим `#SecureData`
 
-**Result:** ❌ **DROPPED**
-- `recv_pkt_region` = `NULL` (no match found)
-- `allowPacketForward()` detects this and blocks the packet
-- Repeater doesn't forward, because it can't identify the region
+**Результат:** ❌ **ОТБРОШЕН**
+- `recv_pkt_region` = объект региона `#SecureData`
+- Регион `#SecureData` имеет установленный флаг denyf (DENY_FLOOD установлен)
+- `allowPacketForward()` проверяет флаг и возвращает false
+- Пакет НЕ пересылается
 
 ---
 
-### Scenario 4: Regular Flood Packet (No Transport Codes) + Wildcard Allows
+### Сценарий 3: Пакет С транспортным кодом + Нет соответствующего региона
 
-**Setup:**
-- Repeater has wildcard region with allowf enabled
-- Packet arrives with no transport codes (generic flood packet)
+**Настройка:**
+- Репитер имеет регионы: `#Europe`, `#Asia`
+- Пакет поступает с транспортным кодом для `#Africa` (неизвестным этому репитеру)
 
-**Result:** ✅ **FORWARDED**
+**Результат:** ❌ **ОТБРОШЕН**
+- `recv_pkt_region` = `NULL` (совпадение не найдено)
+- `allowPacketForward()` обнаруживает это и блокирует пакет
+- Репитер не пересылает, так как не может идентифицировать регион
+
+---
+
+### Сценарий 4: Обычный флуд-пакет (без транспортных кодов) + Шаблон разрешает
+
+**Настройка:**
+- Репитер имеет шаблонный регион с включённым allowf
+- Пакет поступает без транспортных кодов (обычный флуд-пакет)
+
+**Результат:** ✅ **ПЕРЕСЛАН**
 - `recv_pkt_region` = `&region_map.getWildcard()`
-- Wildcard has allowf enabled
-- Repeater forwards the packet
+- Шаблон имеет включённый allowf
+- Репитер пересылает пакет
 
 ---
 
-### Scenario 5: Regular Flood Packet (No Transport Codes) + Wildcard Denies
+### Сценарий 5: Обычный флуд-пакет (без транспортных кодов) + Шаблон запрещает
 
-**Setup:**
-- Repeater has wildcard region with denyf enabled
-- Packet arrives with no transport codes
+**Настройка:**
+- Репитер имеет шаблонный регион с включённым denyf
+- Пакет поступает без транспортных кодов
 
-**Result:** ❌ **DROPPED**
+**Результат:** ❌ **ОТБРОШЕН**
 - `recv_pkt_region` = `NULL`
-- Wildcard has denyf set (denies flooding)
-- `allowPacketForward()` blocks the packet
+- Шаблон имеет установленный denyf (запрещает флуд)
+- `allowPacketForward()` блокирует пакет
 
 ---
 
-### Scenario 6: Direct Route Packets
+### Сценарий 6: Пакеты прямого маршрута
 
-**Setup:**
-- Any repeater configuration
-- Packet arrives as a direct route (ROUTE_TYPE_DIRECT)
+**Настройка:**
+- Любая конфигурация репитера
+- Пакет поступает как прямой маршрут (ROUTE_TYPE_DIRECT)
 
-**Result:** ✅ **ALWAYS FORWARDED** (assuming general forwarding is enabled)
-- Direct routes don't use regions
+**Результат:** ✅ **ВСЕГДА ПЕРЕСЫЛАЕТСЯ** (при условии, что общая пересылка включена)
+- Прямые маршруты не используют регионы
 - `recv_pkt_region` = `NULL`
-- `allowPacketForward()` doesn't block based on regions
-- These packets are forwarded based on other criteria (hop limit, general settings)
+- `allowPacketForward()` не блокирует на основе регионов
+- Эти пакеты пересылаются по другим критериям (лимит хопов, общие настройки)
 
 ---
 
-## Practical Configuration Examples
+## Практические примеры конфигурации
 
-### Example 1: Simple European Network
+### Пример 1: Простая европейская сеть
 
-Allow messages to flood only within the Europe region:
+Разрешить флуд сообщений только в пределах региона Europe:
 
 ```bash
 region load
@@ -350,16 +350,16 @@ region load
 region save
 ```
 
-**Effect:**
-- Only packets with transport_codes[0] = Europe are forwarded
-- Wildcard (packets without transport codes) are blocked
-- All other regions' packets are dropped
+**Эффект:**
+- Пересылаются только пакеты с transport_codes[0] = Europe
+- Шаблонные пакеты (без транспортных кодов) блокируются
+- Пакеты всех остальных регионов отбрасываются
 
 ---
 
-### Example 2: Hierarchical Regional Structure
+### Пример 2: Иерархическая региональная структура
 
-Create a multi-level geographic hierarchy:
+Создание многоуровневой географической иерархии:
 
 ```bash
 region load
@@ -376,17 +376,17 @@ region load
 region save
 ```
 
-**Effect:**
-- All regions allow flooding (F flag on each)
-- Packets scoped to any region are forwarded
-- Wildcard also allows, so unscoped packets pass through
-- Perfect for a global mesh with local organization
+**Эффект:**
+- Все регионы разрешают флуд (флаг F на каждом)
+- Пакеты, привязанные к любому региону, пересылаются
+- Шаблон тоже разрешает, поэтому непривязанные пакеты проходят
+- Идеально для глобальной mesh-сети с локальной организацией
 
 ---
 
-### Example 3: Restricted Headquarters
+### Пример 3: Ограниченный штаб
 
-Create a configuration where HQ messages don't leak to regional networks:
+Создание конфигурации, при которой сообщения HQ не утекают в региональные сети:
 
 ```bash
 region load
@@ -398,21 +398,21 @@ region load
 region save
 ```
 
-Then set:
+Затем установите:
 ```bash
 region denyf #HQ
 ```
 
-**Effect:**
-- Messages scoped to Regions (and their children) are flooded
-- Messages scoped to HQ are NOT repeated (blocked)
-- HQ messages stay local to the HQ node
+**Эффект:**
+- Сообщения, привязанные к Regions (и их потомкам), флудятся
+- Сообщения, привязанные к HQ, НЕ пересылаются (блокируются)
+- Сообщения HQ остаются локальными для узла HQ
 
 ---
 
-### Example 4: Open Mesh with Restrictions
+### Пример 4: Открытая mesh-сеть с ограничениями
 
-Allow most traffic but block specific sensitive regions:
+Разрешить большую часть трафика, но заблокировать определённые конфиденциальные регионы:
 
 ```bash
 region load
@@ -421,27 +421,27 @@ region load
 region save
 ```
 
-Then set:
+Затем установите:
 ```bash
 region denyf #Sensitive
 ```
 
-**Effect:**
-- By default, all unscoped packets and most regions allow flooding
-- Packets explicitly scoped to #Sensitive are blocked by repeaters
-- Ensures sensitive data doesn't leak across neighbors
+**Эффект:**
+- По умолчанию все непривязанные пакеты и большинство регионов разрешают флуд
+- Пакеты, явно привязанные к #Sensitive, блокируются репитерами
+- Гарантирует, что конфиденциальные данные не утекают к соседям
 
 ---
 
-## Region Management CLI Commands
+## CLI-команды управления регионами
 
-### View Current Regions
+### Просмотр текущих регионов
 
 ```bash
-# Dump all regions and their flood status
+# Вывести все регионы и их статус флуда
 region
 
-# Example output:
+# Пример вывода:
 # * F
 #  #Europe F
 #   #UK F
@@ -449,10 +449,10 @@ region
 #    #Manchester F
 ```
 
-### Load and Save Regions
+### Загрузка и сохранение регионов
 
 ```bash
-# Start interactive region loading
+# Начать интерактивную загрузку регионов
 region load
 #Europe F
   #UK F
@@ -461,214 +461,213 @@ region load
   #France F
     #Paris F
 
-# End with blank line
+# Завершить пустой строкой
 region save
 ```
 
-### Modify Region Flood Settings
+### Изменение настроек флуда регионов
 
 ```bash
-# Allow flooding for a region
+# Разрешить флуд для региона
 region allowf #Europe
 
-# Deny flooding for a region
+# Запретить флуд для региона
 region denyf #Europe
 
-# Check status
+# Проверить статус
 region get #Europe
-# Output: #Europe F    (means allowf is enabled)
-# or:     #Europe      (means allowf is disabled)
+# Вывод: #Europe F    (означает allowf включён)
+# или:     #Europe      (означает allowf выключен)
 ```
 
-### Create/Remove Regions
+### Создание/удаление регионов
 
 ```bash
-# Create a new region under a parent
+# Создать новый регион под родителем
 region put #Tokyo #Japan
 
-# Create a top-level region
+# Создать регион верхнего уровня
 region put #Africa
 
-# Remove a region (must have no children)
+# Удалить регион (не должен иметь потомков)
 region remove #Tokyo
 ```
 
-### Set Home Region
+### Установка домашнего региона
 
 ```bash
-# Set the "home" region (your local region)
+# Установить «домашний» регион (ваш локальный регион)
 region home #London
 
-# View current home
+# Просмотр текущего домашнего региона
 region home
-# Output: home is #London
+# Вывод: home is #London
 ```
 
-### List Regions by Status
+### Список регионов по статусу
 
 ```bash
-# List regions that allow flooding
+# Список регионов, разрешающих флуд
 region list allowed
 
-# List regions that deny flooding
+# Список регионов, запрещающих флуд
 region list denied
 ```
 
 ---
 
-## Best Practices
+## Лучшие практики
 
-### 1. **Design Hierarchies by Intent**
-   - Don't just copy geographic boundaries; consider actual mesh topology
-   - Group nodes that can directly reach each other at the same level
-   - Use parent-child relationships to reflect repeater chains
+### 1. **Проектируйте иерархии по назначению**
+   - Не просто копируйте географические границы; учитывайте реальную топологию mesh-сети
+   - Группируйте узлы, которые могут напрямую достичь друг друга, на одном уровне
+   - Используйте отношения «родитель-потомок» для отражения цепочек репитеров
 
-### 2. **Test Before Deploying**
-   - Start with wildcard region allowing (`* F`)
-   - Gradually introduce restricted regions
-   - Monitor which packets are being forwarded/blocked
+### 2. **Тестируйте перед развёртыванием**
+   - Начните с шаблонного региона, разрешающего (`* F`)
+   - Постепенно вводите ограниченные регионы
+   - Отслеживайте, какие пакеты пересылаются/блокируются
 
-### 3. **Use Consistent Naming**
-   - Use geographic or functional names consistently
-   - Prefix with `#` for public regions (auto-hashed keys)
-   - Prefix with `$` for private regions (manually managed keys)
+### 3. **Используйте согласованные имена**
+   - Используйте географические или функциональные имена последовательно
+   - Префикс `#` для публичных регионов (автоматически хешируемые ключи)
+   - Префикс `$` для приватных регионов (ключи, управляемые вручную)
 
-### 4. **Balance Control vs. Openness**
-   - Too many restrictions can fragment the network
-   - Too few restrictions lose the benefit of regional scoping
-   - Default: Start permissive, restrict only where necessary
+### 4. **Баланс между контролем и открытостью**
+   - Слишком много ограничений может фрагментировать сеть
+   - Слишком мало ограничений теряет преимущество регионального охвата
+   - По умолчанию: начните с разрешения, ограничивайте только при необходимости
 
-### 5. **Document Your Configuration**
-   - Keep notes on why each region exists
-   - Record which nodes belong to which regions
-   - Update documentation when topology changes
+### 5. **Документируйте конфигурацию**
+   - Ведите записи о том, почему существует каждый регион
+   - Фиксируйте, какие узлы принадлежат каким регионам
+   - Обновляйте документацию при изменении топологии
 
-### 6. **Monitor Repeater Behavior**
-   - Check repeater logs to see blocked packets
-   - Adjust regions and allowf settings if legitimate traffic is being blocked
-   - Use debug output to verify transport code matching
+### 6. **Мониторьте поведение репитеров**
+   - Проверяйте логи репитеров для просмотра заблокированных пакетов
+   - Корректируйте регионы и настройки allowf, если легитимный трафик блокируется
+   - Используйте отладочный вывод для проверки сопоставления транспортных кодов
 
 ---
 
-## Technical Details for Developers
+## Технические детали для разработчиков
 
-### Transport Code Calculation
+### Вычисление транспортных кодов
 
-Transport codes are calculated using SHA256-based hashing:
+Транспортные коды вычисляются с использованием SHA256-хеширования:
 
 ```cpp
 uint16_t TransportKey::calcTransportCode(mesh::Packet* packet) {
-  // Combines:
-  // - Region ID/name
-  // - Packet header and payload
-  // Result is a 16-bit hash used for region matching
+  // Объединяет:
+  // - ID/имя региона
+  // - Заголовок и полезную нагрузку пакета
+  // Результат — 16-битный хеш для сопоставления регионов
 }
 ```
 
-### Region Matching Algorithm
+### Алгоритм сопоставления регионов
 
 ```cpp
 RegionEntry* RegionMap::findMatch(mesh::Packet* packet, uint8_t mask) {
   for (int i = 0; i < num_regions; i++) {
     auto region = &regions[i];
     
-    // Check if region allows the operation (based on mask)
+    // Проверяем, разрешает ли регион операцию (на основе маски)
     if ((region->flags & mask) == 0) {
-      // Get transport keys for this region
+      // Получаем транспортные ключи для этого региона
       TransportKey keys[4];
       int num = _store->loadKeysFor(region->id, keys, 4);
       
-      // Try each key to compute transport code
+      // Пробуем каждый ключ для вычисления транспортного кода
       for (int j = 0; j < num; j++) {
         uint16_t code = keys[j].calcTransportCode(packet);
         
-        // Compare against packet's code
+        // Сравниваем с кодом пакета
         if (packet->transport_codes[0] == code) {
-          return region;  // Match found!
+          return region;  // Совпадение найдено!
         }
       }
     }
   }
-  return NULL;  // No match
+  return NULL;  // Совпадение не найдено
 }
 ```
 
-### Storage
+### Хранилище
 
-Regions are persisted to flash storage as a binary file (`/regions2`):
+Регионы сохраняются во флеш-память как бинарный файл (`/regions2`):
 
 ```
-[5 bytes header]
-[home_id: 2 bytes]
-[wildcard.flags: 1 byte]
-[next_id: 2 bytes]
-[For each region:
-  [id: 2 bytes]
-  [parent: 2 bytes]
-  [name: 31 bytes]
-  [flags: 1 byte]
-  [reserved: 128 bytes]
+[5 байт заголовок]
+[home_id: 2 байта]
+[wildcard.flags: 1 байт]
+[next_id: 2 байта]
+[Для каждого региона:
+  [id: 2 байта]
+  [parent: 2 байта]
+  [name: 31 байт]
+  [flags: 1 байт]
+  [reserved: 128 байт]
 ]
 ```
 
 ---
 
-## Troubleshooting
+## Устранение неполадок
 
-### Issue: Messages Not Reaching Expected Nodes
+### Проблема: Сообщения не доходят до ожидаемых узлов
 
-**Possible Causes:**
-1. Transport code doesn't match any region
-2. Matching region has `denyf` set
-3. Wildcard region has `denyf` set
+**Возможные причины:**
+1. Транспортный код не соответствует ни одному региону
+2. Соответствующий регион имеет установленный `denyf`
+3. Шаблонный регион имеет установленный `denyf`
 
-**Solution:**
-1. Verify the regions are configured: `region`
-2. Check that relevant regions have `allowf` enabled: `region list allowed`
-3. Examine repeater logs for "unknown transport code" errors
+**Решение:**
+1. Проверьте конфигурацию регионов: `region`
+2. Убедитесь, что соответствующие регионы имеют включённый `allowf`: `region list allowed`
+3. Изучите логи репитера на наличие ошибок «unknown transport code»
 
-### Issue: All Messages Blocked
+### Проблема: Все сообщения заблокированы
 
-**Cause:** Wildcard region has `denyf` enabled
+**Причина:** Шаблонный регион имеет включённый `denyf`
 
-**Solution:**
+**Решение:**
 ```bash
 region allowf *
 ```
 
-### Issue: Too Much Traffic Passing Through
+### Проблема: Слишком много трафика проходит через сеть
 
-**Cause:** Wildcard or many regions have `allowf` enabled
+**Причина:** Шаблон или многие регионы имеют включённый `allowf`
 
-**Solution:**
-1. Use more specific regions
-2. Set `denyf` on regions that shouldn't relay traffic
-3. Configure repeater filtering at the application level
+**Решение:**
+1. Используйте более специфичные регионы
+2. Установите `denyf` на регионах, которые не должны ретранслировать трафик
+3. Настройте фильтрацию репитера на уровне приложения
 
-### Issue: Nodes in Different Regions Can't Communicate
+### Проблема: Узлы в разных регионах не могут обмениваться данными
 
-**Design Issue:** Regions are meant to restrict flooding, not block communication entirely. If you need nodes in different regions to communicate:
+**Проблема проектирования:** Регионы предназначены для ограничения флуда, а не для полной блокировки связи. Если вам нужно, чтобы узлы в разных регионах могли общаться:
 
-1. Use direct routing (doesn't use regions)
-2. Set common parent region with `allowf`
-3. Create gateway nodes that bridge regions
+1. Используйте прямую маршрутизацию (не использует регионы)
+2. Установите общий родительский регион с `allowf`
+3. Создайте узлы-шлюзы, объединяющие регионы
 
 ---
 
-## Summary
+## Итоги
 
-| Concept | Definition |
-|---------|-----------|
-| **Region** | A named organizational zone in the mesh network |
-| **Region Scope** | Which region a message is intended for, encoded in transport codes |
-| **Transport Code** | A 16-bit hash computed from region ID and packet data |
-| **allowf Flag** | Determines if a region allows flooding/repeating (opposite of REGION_DENY_FLOOD) |
-| **Repeater** | A node that forwards messages to neighbors based on region scope and allowf settings |
-| **Wildcard Region `*`** | The root/default region, used for unscoped packets |
+| Концепция | Определение |
+|-----------|-------------|
+| **Регион** | Именованная организационная зона в mesh-сети |
+| **Область региона** | Для какого региона предназначено сообщение, закодировано в транспортных кодах |
+| **Транспортный код** | 16-битный хеш, вычисленный из ID региона и данных пакета |
+| **Флаг allowf** | Определяет, разрешает ли регион флуд/ретрансляцию (противоположность REGION_DENY_FLOOD) |
+| **Репитер** | Узел, пересылающий сообщения соседям на основе области региона и настроек allowf |
+| **Шаблонный регион `*`** | Корневой/регион по умолчанию, используется для непривязанных пакетов |
 
-**Core Rule:** A repeater forwards a packet if and only if:
-1. The packet's transport code matches one of the repeater's configured regions, OR
-2. The packet is unscoped and the wildcard region allows flooding
+**Основное правило:** Репитер пересылает пакет тогда и только тогда, когда:
+1. Транспортный код пакета соответствует одному из настроенных регионов репитера, ИЛИ
+2. Пакет не привязан к региону, и шаблонный регион разрешает флуд
 
-Both conditions must have the corresponding region's `allowf` flag enabled.
-
+Оба условия требуют, чтобы соответствующий флаг `allowf` региона был включён.

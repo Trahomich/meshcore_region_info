@@ -1,36 +1,35 @@
-## Table of Contents
+## Содержание
 
-- [Do I need a new bootloader?](#do-i-need-a-new-bootloader)
-  - [How do I install the bootloader](#how-do-i-install-the-bootloader)
-- [How to OTA update](#how-to-ota-update)
+- [Нужен ли мне новый загрузчик?](#нужен-ли-мне-новый-загрузчик)
+  - [Как установить загрузчик](#как-установить-загрузчик)
+- [Как выполнить OTA-обновление](#как-выполнить-ota-обновление)
 
-# Do I need a new bootloader?
-When you are using a nRF52, you'll probably need a new bootloader created by oltaco. The default booloader will have a high change of failing (50/50).https://github.com/oltaco/Adafruit_nRF52_Bootloader_OTAFIX/releases
+# Нужен ли мне новый загрузчик?
+Если вы используете nRF52, вам, скорее всего, потребуется новый загрузчик, созданный oltaco. Стандартный загрузчик имеет высокую вероятность сбоя (50/50). https://github.com/oltaco/Adafruit_nRF52_Bootloader_OTAFIX/releases
 
-## How do I install the bootloader
-1. Download the bootloader file. The file should start with `update-` and end with `.uf2`. Search for the current release and you devive. So for a wismesh tag search for eaxample: `update-wismesh_tag_bootloader-0.9.2-OTAFIX2.1-BP1.2_nosd.uf2
-`
-2. **IMPORTANT:** If you want to keep the old keys and config, export your config(only for clients using the app) or just the private key (commandline get prv.key).
-3. Store the key/config somewhere
-4. Connect your device to a pc over usb
-5. Put your device in DFU mode. For the wismesh tag you'll have to press the back button 2 times.
-6. You are now able to open the device file folder from your pc.
-7. Drag the file into the folder
-8. The device will restart
-9. Check if the bootloader was installed by checking the HTM file
-10. Open the web flasher
-11. Erase your device
-12. Flash the correct software on your device
-13. (if client)Open your device if client and upload the config
-13. (if repeater) Config your device via the web interface and then open the command line and type `set prv.key + your private key`
-14. reboot
+## Как установить загрузчик
+1. Скачайте файл загрузчика. Файл должен начинаться с `update-` и заканчиваться `.uf2`. Найдите текущий релиз для вашего устройства. Например, для wismesh tag ищите: `update-wismesh_tag_bootloader-0.9.2-OTAFIX2.1-BP1.2_nosd.uf2`
+2. **ВАЖНО:** Если вы хотите сохранить старые ключи и конфигурацию, экспортируйте конфигурацию (только для клиентов через приложение) или только закрытый ключ (из командной строки: `get prv.key`).
+3. Сохраните ключ/конфигурацию в безопасном месте
+4. Подключите устройство к ПК через USB
+5. Переведите устройство в режим DFU. Для wismesh tag нужно нажать заднюю кнопку 2 раза.
+6. Теперь вы можете открыть папку устройства на ПК.
+7. Перетащите файл в папку
+8. Устройство перезагрузится
+9. Проверьте, что загрузчик установлен, открыв HTM-файл
+10. Откройте веб-прошивальщик
+11. Выполните стирание устройства (erase)
+12. Прошейте правильное ПО на устройство
+13. (если клиент) Откройте устройство как клиент и загрузите конфигурацию
+13. (если репитер) Настройте устройство через веб-интерфейс, затем откройте командную строку и введите `set prv.key + ваш закрытый ключ`
+14. Перезагрузите
 
-# How to OTA update
-1. On flasher.meshcore.co.uk, download the non-merged version of the firmware for your ESP32 device (e.g. Heltec_v3_repeater-v1.6.2-4449fd3.bin, no "merged" in the file name)
-2. From the MeshCore app, login remotely to the repeater you want to update with admin privilege
-3. Go to the Command Line tab, type start ota and hit enter.
-4. you should see OK to confirm the repeater device is now in OTA mode
-5. The command start ota on an ESP32-based device starts a wifi hotspot named MeshCore OTA
-6. From your phone or computer connect to the 'MeshCore OTA' hotspot
-7. From a browser, go to http://192.168.4.1/update and upload the non-merged bin from the flasher
-8. It is finished when it shows 100%
+# Как выполнить OTA-обновление
+1. На flasher.meshcore.co.uk скачайте не-merged версию прошивки для вашего ESP32-устройства (например, Heltec_v3_repeater-v1.6.2-4449fd3.bin, без «merged» в имени файла)
+2. Из приложения MeshCore удалённо подключитесь к репитеру, который хотите обновить, с правами администратора
+3. Перейдите на вкладку Command Line, введите `start ota` и нажмите Enter
+4. Вы должны увидеть OK, подтверждающий, что репитер перешёл в режим OTA
+5. Команда `start ota` на устройстве ESP32 запускает точку доступа WiFi с именем MeshCore OTA
+6. С телефона или компьютера подключитесь к точке доступа «MeshCore OTA»
+7. В браузере перейдите на http://192.168.4.1/update и загрузите не-merged bin-файл из прошивальщика
+8. Процесс завершён, когда отобразится 100%
