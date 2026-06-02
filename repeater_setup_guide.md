@@ -6,18 +6,28 @@
 
 ## Шаг 1. Очистка
 
-Сбросить все региональные настройки:
+Удалить все существующие регионы. Команды `region clear` нет — удаляем через `region remove` снизу вверх: сначала дочерние, потом родительские.
+
+Порядок удаления для нашей иерархии:
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 ```
 
-После этого репитер вернётся к состоянию по умолчанию: единственный шаблонный регион `*` с флагом `F` (разрешена пересылка всего).
+Если какие-то регионы не существуют — команда просто выдаст ошибку, это нормально.
 
-Проверить что очистка прошла:
+Шаблонный регион `*` удалить нельзя — он всегда присутствует.
+
+Проверить что осталось:
 
 ```
-region list
+region
 ```
 
 Должен показать только:
@@ -71,7 +81,7 @@ region save
 ## Шаг 5. Проверка
 
 ```
-region list
+region
 ```
 
 Убедиться что все регионы созданы с флагом `F`, `home` и `default` указаны верно.
@@ -83,7 +93,13 @@ region list
 ## Краснодар
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
@@ -94,20 +110,20 @@ region put ru-sta-kmv ru-sta
 region home ru-kda-krd
 region default ru-kda-krd
 region save
-region list
+region
 ```
 
-Ожидаемый вывод `region list`:
+Ожидаемый вывод `region`:
 
 ```
 * F
 ru F
-ru-kda F (parent: ru)
-ru-kda-krd F (parent: ru-kda) [HOME] [DEFAULT]
-ru-kda-gk F (parent: ru-kda)
-ru-sta F (parent: ru)
-ru-sta-stv F (parent: ru-sta)
-ru-sta-kmv F (parent: ru-sta)
+  ru-kda F
+    ru-kda-krd F [HOME] [DEFAULT]
+    ru-kda-gk F
+  ru-sta F
+    ru-sta-stv F
+    ru-sta-kmv F
 ```
 
 ---
@@ -115,7 +131,13 @@ ru-sta-kmv F (parent: ru-sta)
 ## Горячий Ключ
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
@@ -126,7 +148,7 @@ region put ru-sta-kmv ru-sta
 region home ru-kda-gk
 region default ru-kda-gk
 region save
-region list
+region
 ```
 
 Ожидаемый вывод:
@@ -134,12 +156,12 @@ region list
 ```
 * F
 ru F
-ru-kda F (parent: ru)
-ru-kda-krd F (parent: ru-kda)
-ru-kda-gk F (parent: ru-kda) [HOME] [DEFAULT]
-ru-sta F (parent: ru)
-ru-sta-stv F (parent: ru-sta)
-ru-sta-kmv F (parent: ru-sta)
+  ru-kda F
+    ru-kda-krd F
+    ru-kda-gk F [HOME] [DEFAULT]
+  ru-sta F
+    ru-sta-stv F
+    ru-sta-kmv F
 ```
 
 ---
@@ -147,7 +169,13 @@ ru-sta-kmv F (parent: ru-sta)
 ## Ставрополь
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
@@ -158,7 +186,7 @@ region put ru-sta-kmv ru-sta
 region home ru-sta-stv
 region default ru-sta-stv
 region save
-region list
+region
 ```
 
 Ожидаемый вывод:
@@ -166,12 +194,12 @@ region list
 ```
 * F
 ru F
-ru-kda F (parent: ru)
-ru-kda-krd F (parent: ru-kda)
-ru-kda-gk F (parent: ru-kda)
-ru-sta F (parent: ru)
-ru-sta-stv F (parent: ru-sta) [HOME] [DEFAULT]
-ru-sta-kmv F (parent: ru-sta)
+  ru-kda F
+    ru-kda-krd F
+    ru-kda-gk F
+  ru-sta F
+    ru-sta-stv F [HOME] [DEFAULT]
+    ru-sta-kmv F
 ```
 
 ---
@@ -179,7 +207,13 @@ ru-sta-kmv F (parent: ru-sta)
 ## КМВ (Пятигорск / Ессентуки / Кисловодск)
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
@@ -190,7 +224,7 @@ region put ru-sta-kmv ru-sta
 region home ru-sta-kmv
 region default ru-sta-kmv
 region save
-region list
+region
 ```
 
 Ожидаемый вывод:
@@ -198,12 +232,12 @@ region list
 ```
 * F
 ru F
-ru-kda F (parent: ru)
-ru-kda-krd F (parent: ru-kda)
-ru-kda-gk F (parent: ru-kda)
-ru-sta F (parent: ru)
-ru-sta-stv F (parent: ru-sta)
-ru-sta-kmv F (parent: ru-sta) [HOME] [DEFAULT]
+  ru-kda F
+    ru-kda-krd F
+    ru-kda-gk F
+  ru-sta F
+    ru-sta-stv F
+    ru-sta-kmv F [HOME] [DEFAULT]
 ```
 
 ---
@@ -213,7 +247,13 @@ ru-sta-kmv F (parent: ru-sta) [HOME] [DEFAULT]
 Репитер стоит на границе и обслуживает оба края. Home назначаем на ближайший город.
 
 ```
-region clear
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
@@ -224,7 +264,7 @@ region put ru-sta-kmv ru-sta
 region home ru-kda-krd
 region default ru-kda-krd
 region save
-region list
+region
 ```
 
 ---
@@ -233,13 +273,15 @@ region list
 
 | Команда | Описание |
 |---|---|
-| `region clear` | Удалить все регионы и настройки |
+| `region remove <имя>` | Удалить регион (сначала дочерние) |
 | `region put <имя> [родитель]` | Создать регион + автоматически allowf |
 | `region home <регион>` | Объявить местоположение репитера |
 | `region default <регион>` | Scope по умолчанию для исходящих (v1.15.0+) |
 | `region allowf <регион>` | Разрешить пересылку региона (обычно не нужен — put делает это сам) |
 | `region denyf <регион>` | Запретить пересылку региона |
-| `region list` | Показать все регионы и флаги |
+| `region` | Показать все регионы, флаги и иерархию |
+| `region list allowed` | Показать только разрешённые регионы |
+| `region list denied` | Показать только заблокированные регионы |
 | `region save` | Сохранить в энергонезависимую память |
 | `region denyf *` | Закрыть шаблон — пакеты без scope отбрасываются |
 
@@ -251,3 +293,4 @@ region list
 2. **Создали только свой регион** — репитер не знает другие регионы и не сможет их пересылать. Создавайте ВСЮ иерархию.
 3. **Не задали `region home`** — сеть не знает маршрута до региона, пакеты теряются.
 4. **`region denyf *` до того как пользователи настроили scope** — все пакеты без scope перестанут пересылаться, связь пропадёт. Сначала настройте все репитеры и убедитесь что пользователи выставили scope в каналах.
+5. **Удаляете родительский регион до дочерних** — `region remove` требует удаления снизу вверх. Сначала города, потом края, потом страна.
