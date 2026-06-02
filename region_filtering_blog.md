@@ -1,3 +1,6 @@
+> [!NOTE]
+> Переведено ИИ (Hermes Agent)
+
 # Фильтрация по регионам
 
 *Автор: Scott Powell, Lead Firmware Developer*  

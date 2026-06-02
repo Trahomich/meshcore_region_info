@@ -1,3 +1,6 @@
+> [!NOTE]
+> Переведено ИИ (Hermes Agent)
+
 # Область по умолчанию (Default Scope Region)
 
 **Автор:** Scott Powell, Lead Firmware Developer  
