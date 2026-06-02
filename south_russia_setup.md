@@ -41,7 +41,7 @@ region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
 region home ru-kda-krd
-region default ru-kda-krd
+region default ru-kda
 region save
 ```
 
@@ -52,7 +52,7 @@ region put ru
 region put ru-kda ru
 region put ru-kda-gk ru-kda
 region home ru-kda-gk
-region default ru-kda-gk
+region default ru-kda
 region save
 ```
 
@@ -63,7 +63,7 @@ region put ru
 region put ru-sta ru
 region put ru-sta-stv ru-sta
 region home ru-sta-stv
-region default ru-sta-stv
+region default ru-sta
 region save
 ```
 
@@ -74,7 +74,7 @@ region put ru
 region put ru-sta ru
 region put ru-sta-kmv ru-sta
 region home ru-sta-kmv
-region default ru-sta-kmv
+region default ru-sta
 region save
 ```
 
@@ -90,7 +90,7 @@ region put ru-sta ru
 region put ru-kda-krd ru-kda
 region put ru-sta-kmv ru-sta
 region home ru-kda-krd
-region default ru-kda-krd
+region default ru-kda
 region save
 ```
 

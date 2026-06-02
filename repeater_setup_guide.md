@@ -7,23 +7,39 @@
 
 ---
 
+## Принцип: только свои регионы
+
+Репитер создаёт и пересылает только те регионы, в которых он физически находится + общий суперрегион (`ru`). Это не наносит ущерба сети — каждый репитер пересылает только свой трафик.
+
+Пример: репитеру в Краснодаре НЕ нужно знать про `ru-sta-stv`. Пакеты со scope `ru-sta-stv` через него не пойдут — и это правильно, зачем гнать ставропольский городской трафик через Краснодар?
+
+Для межкраевой связи используется общий суперрегион `ru` — он есть на всех репитерах.
+
+---
+
 ## Шаг 1. Очистка
 
-Удалить все существующие регионы. Команды `region clear` нет — удаляем через `region remove` снизу вверх: сначала дочерние, потом родительские.
+Удалить все существующие регионы через `region remove` снизу вверх: сначала дочерние, потом родительские.
 
-Порядок удаления для нашей иерархии:
+Для репитера в Краснодарском крае:
 
 ```
 region remove ru-kda-krd
 region remove ru-kda-gk
 region remove ru-kda
+region remove ru
+```
+
+Для репитера в Ставропольском крае:
+
+```
 region remove ru-sta-stv
 region remove ru-sta-kmv
 region remove ru-sta
 region remove ru
 ```
 
-Если какие-то регионы не существуют — команда просто выдаст ошибку, это нормально.
+Если какие-то регионы не существуют — команда выдаст ошибку, это нормально.
 
 Шаблонный регион `*` удалить нельзя — он всегда присутствует.
 
@@ -40,25 +56,11 @@ region
 
 ---
 
-## Шаг 2. Создание иерархии регионов
+## Шаг 2. Создание регионов
 
 Команда `region put <имя> [родитель]` создаёт регион и автоматически разрешает его пересылку (`allowf`).
 
 Порядок важен: сначала родитель, потом дочерние.
-
-**Важно:** на каждом репитере нужно создать ВСЮ иерархию, а не только свой регион. Репитер должен знать все регионы сети, чтобы корректно обрабатывать пакеты с любым scope.
-
-Общая иерархия для всех репитеров:
-
-```
-ru                          (Россия)
-  ru-kda                    (Краснодарский край)
-    ru-kda-krd              (Краснодар)
-    ru-kda-gk               (Горячий Ключ)
-  ru-sta                    (Ставропольский край)
-    ru-sta-stv              (Ставрополь)
-    ru-sta-kmv              (КМВ)
-```
 
 ---
 
@@ -87,7 +89,7 @@ region save
 region
 ```
 
-Убедиться что все регионы созданы с флагом `F`, `home` и `default` указаны верно.
+Убедиться что регионы созданы с флагом `F`, `home` и `default` указаны верно.
 
 ---
 
@@ -99,19 +101,12 @@ region
 region remove ru-kda-krd
 region remove ru-kda-gk
 region remove ru-kda
-region remove ru-sta-stv
-region remove ru-sta-kmv
-region remove ru-sta
 region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
-region put ru-kda-gk ru-kda
-region put ru-sta ru
-region put ru-sta-stv ru-sta
-region put ru-sta-kmv ru-sta
 region home ru-kda-krd
-region default ru-kda-krd
+region default ru-kda
 region save
 region
 ```
@@ -123,10 +118,6 @@ region
 ru F
   ru-kda F
     ru-kda-krd F [HOME] [DEFAULT]
-    ru-kda-gk F
-  ru-sta F
-    ru-sta-stv F
-    ru-sta-kmv F
 ```
 
 ---
@@ -137,19 +128,12 @@ ru F
 region remove ru-kda-krd
 region remove ru-kda-gk
 region remove ru-kda
-region remove ru-sta-stv
-region remove ru-sta-kmv
-region remove ru-sta
 region remove ru
 region put ru
 region put ru-kda ru
-region put ru-kda-krd ru-kda
 region put ru-kda-gk ru-kda
-region put ru-sta ru
-region put ru-sta-stv ru-sta
-region put ru-sta-kmv ru-sta
 region home ru-kda-gk
-region default ru-kda-gk
+region default ru-kda
 region save
 region
 ```
@@ -160,11 +144,7 @@ region
 * F
 ru F
   ru-kda F
-    ru-kda-krd F
     ru-kda-gk F [HOME] [DEFAULT]
-  ru-sta F
-    ru-sta-stv F
-    ru-sta-kmv F
 ```
 
 ---
@@ -172,22 +152,15 @@ ru F
 ## Ставрополь
 
 ```
-region remove ru-kda-krd
-region remove ru-kda-gk
-region remove ru-kda
 region remove ru-sta-stv
 region remove ru-sta-kmv
 region remove ru-sta
 region remove ru
 region put ru
-region put ru-kda ru
-region put ru-kda-krd ru-kda
-region put ru-kda-gk ru-kda
 region put ru-sta ru
 region put ru-sta-stv ru-sta
-region put ru-sta-kmv ru-sta
 region home ru-sta-stv
-region default ru-sta-stv
+region default ru-sta
 region save
 region
 ```
@@ -197,12 +170,8 @@ region
 ```
 * F
 ru F
-  ru-kda F
-    ru-kda-krd F
-    ru-kda-gk F
   ru-sta F
     ru-sta-stv F [HOME] [DEFAULT]
-    ru-sta-kmv F
 ```
 
 ---
@@ -210,22 +179,15 @@ ru F
 ## КМВ (Пятигорск / Ессентуки / Кисловодск)
 
 ```
-region remove ru-kda-krd
-region remove ru-kda-gk
-region remove ru-kda
 region remove ru-sta-stv
 region remove ru-sta-kmv
 region remove ru-sta
 region remove ru
 region put ru
-region put ru-kda ru
-region put ru-kda-krd ru-kda
-region put ru-kda-gk ru-kda
 region put ru-sta ru
-region put ru-sta-stv ru-sta
 region put ru-sta-kmv ru-sta
 region home ru-sta-kmv
-region default ru-sta-kmv
+region default ru-sta
 region save
 region
 ```
@@ -235,11 +197,7 @@ region
 ```
 * F
 ru F
-  ru-kda F
-    ru-kda-krd F
-    ru-kda-gk F
   ru-sta F
-    ru-sta-stv F
     ru-sta-kmv F [HOME] [DEFAULT]
 ```
 
@@ -260,14 +218,23 @@ region remove ru
 region put ru
 region put ru-kda ru
 region put ru-kda-krd ru-kda
-region put ru-kda-gk ru-kda
 region put ru-sta ru
-region put ru-sta-stv ru-sta
 region put ru-sta-kmv ru-sta
 region home ru-kda-krd
-region default ru-kda-krd
+region default ru-kda
 region save
 region
+```
+
+Ожидаемый вывод:
+
+```
+* F
+ru F
+  ru-kda F
+    ru-kda-krd F [HOME] [DEFAULT]
+  ru-sta F
+    ru-sta-kmv F
 ```
 
 ---
@@ -293,7 +260,7 @@ region
 # Типичные ошибки
 
 1. **Забыли `region save`** — после перезагрузки всё пропадёт.
-2. **Создали только свой регион** — репитер не знает другие регионы и не сможет их пересылать. Создавайте ВСЮ иерархию.
-3. **Не задали `region home`** — сеть не знает маршрута до региона, пакеты теряются.
-4. **`region denyf *` до того как пользователи настроили scope** — все пакеты без scope перестанут пересылаться, связь пропадёт. Сначала настройте все репитеры и убедитесь что пользователи выставили scope в каналах.
-5. **Удаляете родительский регион до дочерних** — `region remove` требует удаления снизу вверх. Сначала города, потом края, потом страна.
+2. **Не задали `region home`** — сеть не знает маршрута до региона, пакеты теряются.
+3. **`region denyf *` до того как пользователи настроили scope** — все пакеты без scope перестанут пересылаться, связь пропадёт. Сначала настройте все репитеры и убедитесь что пользователи выставили scope в каналах.
+4. **Удаляете родительский регион до дочерних** — `region remove` требует удаления снизу вверх. Сначала города, потом край, потом страна.
+5. **`region default` указан как город, а не край** — DM без scope дойдёт только до одного города. Обычно нужно указывать край.
