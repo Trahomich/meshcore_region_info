@@ -286,18 +286,35 @@ ru F
 
 Репитер стоит на границе и обслуживает оба края. Должен быть членом обоих регионов одновременно. Home назначаем на ближайший город, default — на край основного направления.
 
-**Принцип:** через `region def` обе ветки расходятся от общего родителя `ru`. Ветвление `|ru` возвращает курсор к корню `ru`, и `kda` и `sta` висят на одном узле. Это позволяет scoped-пакетам проходить между регионами через этот репитер.
+**Принцип:** через `region def` обе ветки расходятся от общего родителя `ru`. Токен перед `|` подтверждает лист текущей ветки, затем `|ru` прыгает к корню для следующей ветки. Это позволяет scoped-пакетам проходить между регионами через этот репитер.
 
-**Через `region def` (v1.16.0+):**
+**Через `region def` (v1.16.0+), плоский вариант:**
+```
+region remove ru-kda
+region remove ru-sta
+region remove ru
+region def ru ru-kda ru-kda|ru ru-sta ru-sta
+region home ru-kda
+region default ru-kda
+region save
+region
+```
+
+Разбор токенов:
+1. `ru` — создаёт `ru` под `*`, курсор → `ru`
+2. `ru-kda` — создаёт `ru-kda` под `ru`, курсор → `ru-kda`
+3. `ru-kda|ru` — `ru-kda` уже создан (подтверждение листа), прыжок к `ru`
+4. `ru-sta` — создаёт `ru-sta` под `ru`, курсор → `ru-sta`
+5. `ru-sta` — подтверждение листа
+
+**Через `region def`, с вложенными городами:**
 ```
 region remove ru-kda-krd
-region remove ru-kda-gk
 region remove ru-kda
-region remove ru-sta-stv
 region remove ru-sta-kmv
 region remove ru-sta
 region remove ru
-region def ru ru-kda ru-kda-krd|ru ru-sta ru-sta-kmv
+region def ru ru-kda ru-kda-krd ru-kda-krd|ru ru-sta ru-sta-kmv ru-sta-kmv
 region home ru-kda-krd
 region default ru-kda
 region save
@@ -307,9 +324,7 @@ region
 **Через `region put` (классический):**
 ```
 region remove ru-kda-krd
-region remove ru-kda-gk
 region remove ru-kda
-region remove ru-sta-stv
 region remove ru-sta-kmv
 region remove ru-sta
 region remove ru
@@ -324,7 +339,7 @@ region save
 region
 ```
 
-Ожидаемый вывод:
+Ожидаемый вывод (с вложенными городами):
 
 ```
 * F
@@ -335,7 +350,7 @@ ru F
     ru-sta-kmv F
 ```
 
-Репитер — член всех пяти регионов (`ru`, `kda`, `krd`, `sta`, `kmv`). Пакеты со scope `krd` доходят, со scope `kmv` — тоже. Advert-пакеты расходятся в обе стороны.
+Репитер — член всех регионов в обеих ветках. Пакеты со scope `ru-kda` доходят, со scope `ru-sta` — тоже. Advert-пакеты расходятся в обе стороны.
 
 **Внимание — `flood.max.*` для пограничных репитеров:**
 
@@ -350,7 +365,7 @@ region save
 
 Если регионы плоские (без общего родителя `ru`), scoped-пакеты НЕ будут проходить между ними. Плоская граница подходит только если транзит не нужен:
 ```
-region def ru-kda-krd|* ru-sta-kmv
+region def ru-kda|* ru-sta
 region save
 ```
 
