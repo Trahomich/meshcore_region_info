@@ -58,16 +58,39 @@ region
 
 ## Шаг 2. Создание регионов
 
+Два варианта:
+
+**Вариант A — `region put` (классический):**
+
 Команда `region put <имя> [родитель]` создаёт регион и автоматически разрешает его пересылку (`allowf`).
 
 Порядок важен: сначала родитель, потом дочерние.
+
+**Вариант B — `region def` (v1.16.0+, рекомендуется):**
+
+Команда `region def` создаёт всю иерархию одной строкой. Курсор начинает с корня `*`.
+
+```
+region def ru ru-kda ru-kda-krd
+region save
+```
+
+Создаёт цепочку: `*` -> `ru` -> `ru-kda` -> `ru-kda-krd`.
+
+Для ветвлений используется `|`:
+```
+region def ru ru-kda ru-kda-krd|ru-kda ru-kda-gk
+region save
+```
+
+Создаёт: `ru` -> `ru-kda` -> `ru-kda-krd` и `ru-kda` -> `ru-kda-gk`.
 
 ---
 
 ## Шаг 3. Назначение home и default
 
 - `region home <регион>` — объявляет местоположение репитера. Влияет на маршрутизацию.
-- `region default <регион>` — scope по умолчанию для исходящих сообщений (v1.15.0+).
+- `region default <регион>` — scope по умолчанию для исходящих сообщений (v1.15.0+). Устанавливайте на уровне края, не города.
 
 Обе команды выполняются после создания иерархии.
 
@@ -97,6 +120,20 @@ region
 
 ## Краснодар
 
+**Через `region def` (v1.16.0+):**
+```
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru
+region def ru ru-kda ru-kda-krd
+region home ru-kda-krd
+region default ru-kda
+region save
+region
+```
+
+**Через `region put` (классический):**
 ```
 region remove ru-kda-krd
 region remove ru-kda-gk
@@ -124,6 +161,20 @@ ru F
 
 ## Горячий Ключ
 
+**Через `region def` (v1.16.0+):**
+```
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru
+region def ru ru-kda ru-kda-gk
+region home ru-kda-gk
+region default ru-kda
+region save
+region
+```
+
+**Через `region put` (классический):**
 ```
 region remove ru-kda-krd
 region remove ru-kda-gk
@@ -151,6 +202,20 @@ ru F
 
 ## Ставрополь
 
+**Через `region def` (v1.16.0+):**
+```
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
+region def ru ru-sta ru-sta-stv
+region home ru-sta-stv
+region default ru-sta
+region save
+region
+```
+
+**Через `region put` (классический):**
 ```
 region remove ru-sta-stv
 region remove ru-sta-kmv
@@ -178,6 +243,20 @@ ru F
 
 ## КМВ (Пятигорск / Ессентуки / Кисловодск)
 
+**Через `region def` (v1.16.0+):**
+```
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
+region def ru ru-sta ru-sta-kmv
+region home ru-sta-kmv
+region default ru-sta
+region save
+region
+```
+
+**Через `region put` (классический):**
 ```
 region remove ru-sta-stv
 region remove ru-sta-kmv
@@ -207,6 +286,23 @@ ru F
 
 Репитер стоит на границе и обслуживает оба края. Home назначаем на ближайший город.
 
+**Через `region def` (v1.16.0+):**
+```
+region remove ru-kda-krd
+region remove ru-kda-gk
+region remove ru-kda
+region remove ru-sta-stv
+region remove ru-sta-kmv
+region remove ru-sta
+region remove ru
+region def ru ru-kda ru-kda-krd|ru ru-sta ru-sta-kmv
+region home ru-kda-krd
+region default ru-kda
+region save
+region
+```
+
+**Через `region put` (классический):**
 ```
 region remove ru-kda-krd
 region remove ru-kda-gk
@@ -243,17 +339,21 @@ ru F
 
 | Команда | Описание |
 |---|---|
-| `region remove <имя>` | Удалить регион (сначала дочерние) |
+| `region` | Показать все регионы, флаги и иерархию |
+| `region get <имя>` | Информация о конкретном регионе |
 | `region put <имя> [родитель]` | Создать регион + автоматически allowf |
+| `region def <token> [...]` | Создать иерархию одной строкой (v1.16.0+) |
+| `region remove <имя>` | Удалить регион (сначала дочерние) |
 | `region home <регион>` | Объявить местоположение репитера |
 | `region default <регион>` | Scope по умолчанию для исходящих (v1.15.0+) |
 | `region allowf <регион>` | Разрешить пересылку региона (обычно не нужен — put делает это сам) |
 | `region denyf <регион>` | Запретить пересылку региона |
-| `region` | Показать все регионы, флаги и иерархию |
-| `region list allowed` | Показать только разрешённые регионы |
-| `region list denied` | Показать только заблокированные регионы |
+| `region list allowed` | Показать только разрешённые регионы (firmware 1.12+) |
+| `region list denied` | Показать только заблокированные регионы (firmware 1.12+) |
 | `region save` | Сохранить в энергонезависимую память |
 | `region denyf *` | Закрыть шаблон — пакеты без scope отбрасываются |
+| `set flood.max.unscoped <N>` | Макс. hops для пакетов без scope (v1.16.0+, по умолч. 64) |
+| `set flood.max.advert <N>` | Макс. hops для advert-пакетов (v1.16.0+, по умолч. 8) |
 
 ---
 
@@ -264,3 +364,5 @@ ru F
 3. **`region denyf *` до того как пользователи настроили scope** — все пакеты без scope перестанут пересылаться, связь пропадёт. Сначала настройте все репитеры и убедитесь что пользователи выставили scope в каналах.
 4. **Удаляете родительский регион до дочерних** — `region remove` требует удаления снизу вверх. Сначала города, потом край, потом страна.
 5. **`region default` указан как город, а не край** — DM без scope дойдёт только до одного города. Обычно нужно указывать край.
+6. **`region def` с ошибочным jump** — команда выдаст `Err - unknown jump: ...`, но регионы до ошибки останутся. Проверьте через `region` и исправьте.
+7. **Слишком длинная строка `region def`** — serial принимает до 160 символов. Разбейте на несколько вызовов, курсор сбрасывается на `*` между вызовами.
